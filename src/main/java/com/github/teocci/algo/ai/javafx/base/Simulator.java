@@ -15,8 +15,7 @@ import static com.github.teocci.algo.ai.javafx.base.model.Dot.BASE_RADIUS;
  *
  * @author teocci@yandex.com on 2018-Aug-23
  */
-public class Simulator
-{
+public class Simulator {
     private static final String TAG = LogHelper.makeLogTag(Simulator.class);
 
     public static final int BASE_OFFSET = 20 + BASE_RADIUS;
@@ -38,16 +37,14 @@ public class Simulator
 
     private Dot goal;
 
-    public Simulator(int size, Pane canvas)
-    {
+    public Simulator(int size, Pane canvas) {
         this.size = size;
         this.canvas = canvas;
 
         init();
     }
 
-    public Simulator(int size, Pane canvas, Label genValue, Label bestValue)
-    {
+    public Simulator(int size, Pane canvas, Label genValue, Label bestValue) {
         this.size = size;
         this.canvas = canvas;
         this.genValue = genValue;
@@ -56,8 +53,7 @@ public class Simulator
         init();
     }
 
-    private void init()
-    {
+    private void init() {
         this.width = (int) canvas.getWidth();
         this.height = (int) canvas.getHeight();
 
@@ -67,8 +63,7 @@ public class Simulator
         initGoal();
     }
 
-    private void initDots()
-    {
+    private void initDots() {
         dots = new Dot[size];
         for (int i = 0; i < size; i++) {
             // Start the dots at the bottom of the window with a no velocity or acceleration
@@ -76,8 +71,7 @@ public class Simulator
         }
     }
 
-    private void initGoal()
-    {
+    private void initGoal() {
         int radius = 15;
         goal = new Dot(width / 2, radius);
         goal.setColor(Color.BLUE);
@@ -85,8 +79,7 @@ public class Simulator
     }
 
 
-    public Circle[] getDots()
-    {
+    public Circle[] getDots() {
         Circle[] nodes = new Circle[dots.length + 1];
         nodes[0] = goal.getDot();
         for (int i = 0; i < dots.length; i++) {
@@ -97,15 +90,14 @@ public class Simulator
     }
 
     //update all dots
-    public void update()
-    {
+    public void update() {
         for (int i = 0; i < dots.length; i++) {
             if (dots[i].getDna().getStep() > minStep) {
                 // If the dot has already taken more steps than the best dot has taken to reach the goal
                 dots[i].die();
             } else {
                 if (canvas == null) throw new NullPointerException("Canvas is null.");
-                dots[i].update(goal, width, height - BASE_OFFSET / 2);
+                dots[i].update(goal, width, height - BASE_OFFSET * 2 / 3);
             }
         }
 
@@ -117,8 +109,7 @@ public class Simulator
     }
 
     // calculate all the fitness's
-    public void calculateFitness()
-    {
+    public void calculateFitness() {
         for (int i = 0; i < dots.length; i++) {
             dots[i].calculateFitness(goal.getPos());
         }
@@ -128,8 +119,7 @@ public class Simulator
     /**
      * Returns whether all the dots are either dead or have reached the goal
      */
-    public boolean allDotsDead()
-    {
+    public boolean allDotsDead() {
         for (Dot dot : dots) {
             if (!dot.isDead() && !dot.hasReachedGoal()) {
                 return false;
@@ -142,8 +132,7 @@ public class Simulator
     /**
      * Gets the next generation of dots
      */
-    public void naturalSelection()
-    {
+    public void naturalSelection() {
         int length = dots.length - 1;
 
         // New generation
@@ -169,8 +158,7 @@ public class Simulator
     }
 
 
-    public void calculateFitnessSum()
-    {
+    public void calculateFitnessSum() {
         fitnessSum = 0;
         for (Dot dot : dots) {
             fitnessSum += dot.getFitness();
@@ -182,8 +170,7 @@ public class Simulator
     //this function works by randomly choosing a value between 0 and the sum of all the fitnesses
     //then go through all the dots and add their fitness to a running sum and if that sum is greater than the random value generated that dot is chosen
     //since dots with a higher fitness function add more to the running sum then they have a higher chance of being chosen
-    private Dot selectParent()
-    {
+    private Dot selectParent() {
         double rand = Random.uniform(0, fitnessSum);
 
         double runningSum = 0;
@@ -204,8 +191,7 @@ public class Simulator
     /**
      * Mutates all the brains of the babies
      */
-    public void mutate()
-    {
+    public void mutate() {
         for (int i = 1; i < dots.length; i++) {
             dots[i].getDna().mutate();
         }
@@ -214,8 +200,7 @@ public class Simulator
     /**
      * Finds the dot with the highest fitness and sets it as the best dot
      */
-    public void setBestDot()
-    {
+    public void setBestDot() {
         double max = 0;
         int maxIndex = 0;
         for (int i = 0; i < dots.length; i++) {
@@ -236,8 +221,7 @@ public class Simulator
         }
     }
 
-    public int getGen()
-    {
+    public int getGen() {
         return gen;
     }
 }

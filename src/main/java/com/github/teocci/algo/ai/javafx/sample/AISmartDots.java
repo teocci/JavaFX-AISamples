@@ -32,7 +32,7 @@ public class AISmartDots extends Application
         BorderPane root = new BorderPane();
         ToolBar toolBar = new ToolBar();
         Pane canvas = new Pane();
-        Scene scene = new Scene(root, 800, 800);
+        Scene scene = new Scene(root, 800, 960);
         scene.setFill(Color.LIGHTGRAY);
 
 
@@ -41,6 +41,7 @@ public class AISmartDots extends Application
 
         stage.setTitle("Smart Dots");
         stage.setScene(scene);
+        stage.setResizable(false);
         stage.show();
 
         Label genLbl = new Label("Generation:");

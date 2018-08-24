@@ -30,6 +30,7 @@ public class Animator extends AnimationTimer
         // max speed: 100 hundred times per second
         if (now - lastTime > 10000000) {
             lastTime = now;
+
             if (simulator.allDotsDead()) {
                 // Genetic algorithm
                 simulator.calculateFitness();
