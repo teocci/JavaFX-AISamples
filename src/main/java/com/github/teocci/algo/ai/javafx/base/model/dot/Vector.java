@@ -1,4 +1,4 @@
-package com.github.teocci.algo.ai.javafx.base.model;
+package com.github.teocci.algo.ai.javafx.base.model.dot;
 
 /**
  * Created by teocci.

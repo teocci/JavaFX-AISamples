@@ -1,7 +1,7 @@
 package com.github.teocci.algo.ai.javafx.sample;
 
-import com.github.teocci.algo.ai.javafx.base.animators.dot.Animator;
 import com.github.teocci.algo.ai.javafx.base.Simulator;
+import com.github.teocci.algo.ai.javafx.base.animators.dot.Animator;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -17,9 +17,9 @@ import javafx.stage.Stage;
 /**
  * Created by teocci.
  *
- * @author teocci@yandex.com on 2018-Aug-24
+ * @author teocci@yandex.com on 2018-Aug-27
  */
-public class AISmartDots extends Application
+public class SmartDino extends Application
 {
     private Simulator simulator;
 
@@ -34,11 +34,10 @@ public class AISmartDots extends Application
         Scene scene = new Scene(root, 800, 960);
         scene.setFill(Color.LIGHTGRAY);
 
-
         root.setCenter(canvas);
         root.setBottom(toolBar);
 
-        stage.setTitle("Smart Dots");
+        stage.setTitle("Smart Dino");
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();

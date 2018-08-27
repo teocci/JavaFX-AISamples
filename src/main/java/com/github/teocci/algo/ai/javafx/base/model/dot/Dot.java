@@ -1,4 +1,4 @@
-package com.github.teocci.algo.ai.javafx.base.model;
+package com.github.teocci.algo.ai.javafx.base.model.dot;
 
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 import javafx.scene.paint.Color;
@@ -9,7 +9,8 @@ import javafx.scene.shape.Circle;
  *
  * @author teocci@yandex.com on 2018-Aug-23
  */
-public class Dot {
+public class Dot
+{
     private static final String TAG = LogHelper.makeLogTag(Dot.class);
 
     private static final int BASE_INSTRUCTIONS = 1000;
@@ -31,11 +32,13 @@ public class Dot {
 
     private int width, height;
 
-    public Dot() {
+    public Dot()
+    {
         this(0, 0);
     }
 
-    public Dot(int x, int y) {
+    public Dot(int x, int y)
+    {
         dna = new DNA(BASE_INSTRUCTIONS);
         dna.init();
 
@@ -52,7 +55,8 @@ public class Dot {
      * Moves the dot if there are still directions left then get the next vector in the directions array
      * and set it as new the acceleration
      */
-    public void move() {
+    public void move()
+    {
         Vector2D[] directions = dna.getDirections();
         if (directions == null) throw new NullPointerException("Brain directions is null");
 
@@ -75,7 +79,8 @@ public class Dot {
         dot.translateYProperty().set(pos.getY() > height ? height : pos.getY());
     }
 
-    public void update(Dot goal, int width, int height) {
+    public void update(Dot goal, int width, int height)
+    {
         if (!dead && !reachedGoal) {
             setBounds(width, height);
             move();
@@ -83,7 +88,8 @@ public class Dot {
         }
     }
 
-    private void collisions(Dot goal) {
+    private void collisions(Dot goal)
+    {
         // If near the edges of the window then kill it
         if (checkIfDead()) {
             die();
@@ -95,17 +101,20 @@ public class Dot {
         }
     }
 
-    private boolean checkIfDead() {
+    private boolean checkIfDead()
+    {
         double radius = getRadius();
         return pos.getX() < radius || pos.getY() < radius || pos.getX() > width - radius || pos.getY() > height - radius;
     }
 
-    private boolean checkIfGoal(Dot goal) {
+    private boolean checkIfGoal(Dot goal)
+    {
         double radius = getRadius();
         return pos.distanceTo(goal.getPos()) < goal.getRadius() - radius;
     }
 
-    public void calculateFitness(Vector2D goal) {
+    public void calculateFitness(Vector2D goal)
+    {
         if (reachedGoal) {//if the dot reached the goal then the fitness is based on the amount of steps it took to get there
             fitness = 1.0 / 16.0 + 10000.0 / (float) (dna.getStep() * dna.getStep());
         } else {//if the dot didn't reach the goal then the fitness is based on how close it is to the goal
@@ -117,82 +126,99 @@ public class Dot {
     /**
      * New dots have the same brain as their parents
      */
-    public Dot mitosis() {
+    public Dot mitosis()
+    {
         Dot newDot = new Dot(width / 2, height - BASE_RADIUS);
         newDot.dna = dna.clone();
         return newDot;
     }
 
-    public void die() {
+    public void die()
+    {
         dead = true;
         dot.setFill(Color.ORANGERED);
     }
 
-    public void best() {
+    public void best()
+    {
         best = true;
         dot.setFill(Color.LIGHTGREEN);
     }
 
-    public void gotGoal() {
+    public void gotGoal()
+    {
         reachedGoal = true;
         dot.setFill(Color.MAGENTA);
     }
 
 
-    public void setBounds(int width, int height) {
+    public void setBounds(int width, int height)
+    {
         this.width = width;
         this.height = height;
     }
 
-    public void setPos(int x, int y) {
+    public void setPos(int x, int y)
+    {
         pos = new Vector2D(x, y);
         dot.layoutXProperty().set(pos.getX());
         dot.layoutXProperty().set(pos.getY());
     }
 
-    public void setColor(Color color) {
+    public void setColor(Color color)
+    {
         dot.setFill(color);
     }
 
-    public void setRadius(double radius) {
+    public void setRadius(double radius)
+    {
         dot.setRadius(radius);
     }
 
 
-    public Vector2D getPos() {
+    public Vector2D getPos()
+    {
         return pos;
     }
 
-    public void setDot(Circle dot) {
+    public void setDot(Circle dot)
+    {
         this.dot = dot;
     }
 
-    public Circle getDot() {
+    public Circle getDot()
+    {
         return dot;
     }
 
-    private double getRadius() {
+    private double getRadius()
+    {
         return dot.getRadius();
     }
 
-    public DNA getDna() {
+    public DNA getDna()
+    {
         return dna;
     }
 
-    public double getFitness() {
+    public double getFitness()
+    {
         return fitness;
     }
 
 
-    public boolean hasReachedGoal() {
+    public boolean hasReachedGoal()
+    {
         return reachedGoal;
     }
 
-    public boolean isDead() {
+    public boolean isDead()
+    {
         return dead;
     }
 
-    public boolean isBest() {
+    public boolean isBest()
+    {
         return best;
     }
 }

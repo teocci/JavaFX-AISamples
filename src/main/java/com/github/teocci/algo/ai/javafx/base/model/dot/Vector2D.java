@@ -1,4 +1,4 @@
-package com.github.teocci.algo.ai.javafx.base.model;
+package com.github.teocci.algo.ai.javafx.base.model.dot;
 
 /**
  * Created by teocci.
@@ -37,7 +37,7 @@ public class Vector2D
         if (this.length() != that.length())
             throw new IllegalArgumentException("dimensions disagree");
 
-        return x * that.getX() + y *that.getY();
+        return x * that.getX() + y * that.getY();
     }
 
     // return the Euclidean norm of this Vector

@@ -1,9 +1,8 @@
-package com.github.teocci.algo.ai.javafx.base;
+package com.github.teocci.algo.ai.javafx.base.animators.dot;
 
+import com.github.teocci.algo.ai.javafx.base.Simulator;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 import javafx.animation.AnimationTimer;
-import javafx.scene.control.Label;
-import javafx.scene.layout.Pane;
 
 /**
  * Created by teocci.
@@ -17,7 +16,6 @@ public class Animator extends AnimationTimer
     private long lastTime = System.currentTimeMillis();
 
     private Simulator simulator;
-    private Label genValue, bestValue;
 
     public Animator(Simulator simulator)
     {
