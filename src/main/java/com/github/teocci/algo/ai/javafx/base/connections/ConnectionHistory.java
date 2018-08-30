@@ -19,7 +19,7 @@ public class ConnectionHistory
 
 
     // The innovation Numbers from the connections of the genome which first had this mutation
-    // This represents the genome and allows us to test if another genoeme is the same
+    // This represents the genome and allows us to test if another genome is the same
     // This is before this connection was added
     private List<Integer> innovationNumbers;
 
@@ -29,7 +29,7 @@ public class ConnectionHistory
         fromNode = from;
         toNode = to;
         innovationNumber = inno;
-        innovationNumbers = (ArrayList) innovationNos.clone();
+        innovationNumbers = (ArrayList<Integer>) innovationNos.clone();
     }
 
     /**
@@ -37,11 +37,11 @@ public class ConnectionHistory
      */
     public boolean matches(Genome genome, Node from, Node to)
     {
-        if (genome.genes.size() == innovationNumbers.size()) {
-            if (from.number == fromNode && to.number == toNode) {
+        if (genome.getGenes().size() == innovationNumbers.size()) {
+            if (from.getNumber() == fromNode && to.getNumber() == toNode) {
                 // Next check if all the innovation numbers match from the genome
-                for (int i = 0; i < genome.genes.size(); i++) {
-                    if (!innovationNumbers.contains(genome.genes.get(i).innovationNo)) {
+                for (int i = 0; i < genome.getGenes().size(); i++) {
+                    if (!innovationNumbers.contains(genome.getGenes().get(i).getInnovationNo())) {
                         return false;
                     }
                 }

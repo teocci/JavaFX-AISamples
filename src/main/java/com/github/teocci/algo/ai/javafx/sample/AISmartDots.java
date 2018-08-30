@@ -1,7 +1,7 @@
 package com.github.teocci.algo.ai.javafx.sample;
 
 import com.github.teocci.algo.ai.javafx.base.animators.dot.Animator;
-import com.github.teocci.algo.ai.javafx.base.Simulator;
+import com.github.teocci.algo.ai.javafx.base.controllers.dot.GenerationController;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -21,7 +21,7 @@ import javafx.stage.Stage;
  */
 public class AISmartDots extends Application
 {
-    private Simulator simulator;
+    private GenerationController generationController;
 
     private Animator animator;
 
@@ -48,14 +48,14 @@ public class AISmartDots extends Application
         Label bestLbl = new Label("Min steps:");
         Label bestValue = new Label("10000");
 
-        simulator = new Simulator(1000, canvas, genValue, bestValue);
+        generationController = new GenerationController(1000, canvas, genValue, bestValue);
 
         Region region = new Region();
         HBox.setHgrow(region, Priority.ALWAYS);
 
         toolBar.getItems().setAll(genLbl, genValue, region, bestLbl, bestValue);
 
-        animator = new Animator(simulator);
+        animator = new Animator(generationController);
         animator.start();
     }
 

@@ -1,4 +1,4 @@
-package com.github.teocci.algo.ai.javafx.base;
+package com.github.teocci.algo.ai.javafx.base.controllers.dot;
 
 import com.github.teocci.algo.ai.javafx.base.model.dot.Dot;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
@@ -15,9 +15,9 @@ import static com.github.teocci.algo.ai.javafx.base.model.dot.Dot.BASE_RADIUS;
  *
  * @author teocci@yandex.com on 2018-Aug-23
  */
-public class Simulator
+public class GenerationController
 {
-    private static final String TAG = LogHelper.makeLogTag(Simulator.class);
+    private static final String TAG = LogHelper.makeLogTag(GenerationController.class);
 
     public static final int BASE_OFFSET = 20 + BASE_RADIUS;
 
@@ -38,7 +38,7 @@ public class Simulator
 
     private Dot goal;
 
-    public Simulator(int size, Pane canvas)
+    public GenerationController(int size, Pane canvas)
     {
         this.size = size;
         this.canvas = canvas;
@@ -46,7 +46,7 @@ public class Simulator
         init();
     }
 
-    public Simulator(int size, Pane canvas, Label genValue, Label bestValue)
+    public GenerationController(int size, Pane canvas, Label genValue, Label bestValue)
     {
         this.size = size;
         this.canvas = canvas;

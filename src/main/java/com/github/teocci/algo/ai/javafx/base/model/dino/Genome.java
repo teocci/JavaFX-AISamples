@@ -2,7 +2,10 @@ package com.github.teocci.algo.ai.javafx.base.model.dino;
 
 import com.github.teocci.algo.ai.javafx.base.connections.ConnectionGene;
 import com.github.teocci.algo.ai.javafx.base.connections.ConnectionHistory;
+import com.github.teocci.algo.ai.javafx.base.controllers.dot.GenerationController;
 import com.github.teocci.algo.ai.javafx.base.model.dot.Vector2D;
+import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
+import com.github.teocci.algo.ai.javafx.base.utils.Random;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +17,8 @@ import java.util.List;
  */
 public class Genome
 {
+    private static final String TAG = LogHelper.makeLogTag(Genome.class);
+
     // A list of connections between nodes which represent the NN
     private List<ConnectionGene> genes = new ArrayList<>();
     private List<Node> nodes = new ArrayList<>();
@@ -37,20 +42,20 @@ public class Genome
         for (int i = 0; i < inputs; i++) {
             nodes.add(new Node(i));
             nextNode++;
-            nodes.get(i).layer = 0;
+            nodes.get(i).setLayer(0);
         }
 
         // Create output nodes
         for (int i = 0; i < outputs; i++) {
             nodes.add(new Node(i + inputs));
-            nodes.get(i + inputs).layer = 1;
+            nodes.get(i + inputs).setLayer(1);
             nextNode++;
         }
 
         nodes.add(new Node(nextNode));//bias node
         biasNode = nextNode;
         nextNode++;
-        nodes.get(biasNode).layer = 0;
+        nodes.get(biasNode).setLayer(0);
     }
 
 
@@ -68,7 +73,7 @@ public class Genome
     public Node getNode(int nodeNumber)
     {
         for (int i = 0; i < nodes.size(); i++) {
-            if (nodes.get(i).number == nodeNumber) {
+            if (nodes.get(i).getNumber() == nodeNumber) {
                 return nodes.get(i);
             }
         }
@@ -80,39 +85,38 @@ public class Genome
      */
     public void connectNodes()
     {
-
         for (int i = 0; i < nodes.size(); i++) {//clear the connections
-            nodes.get(i).outputConnections.clear();
+            nodes.get(i).getOutputConnections().clear();
         }
 
         for (int i = 0; i < genes.size(); i++) {//for each connectionGene
-            genes.get(i).fromNode.outputConnections.add(genes.get(i));//add it to node
+            genes.get(i).getFromNode().getOutputConnections().add(genes.get(i));//add it to node
         }
     }
 
     /**
      * Feeding in input values into the NN and returning output array
      */
-    public float[] feedForward(float[] inputValues)
+    public double[] feedForward(float[] inputValues)
     {
         //set the outputs of the input nodes
         for (int i = 0; i < inputs; i++) {
-            nodes.get(i).outputValue = inputValues[i];
+            nodes.get(i).setOutputValue(inputValues[i]);
         }
-        nodes.get(biasNode).outputValue = 1;//output of bias is 1
+        nodes.get(biasNode).setOutputValue(1);//output of bias is 1
 
-        for (int i = 0; i < network.size(); i++) {//for each node in the network engage it(see node class for what this does)
-            network.get(i).engage();
+        for (Node aNetwork : network) {//for each node in the network engage it(see node class for what this does)
+            aNetwork.engage();
         }
 
         //the outputs are nodes[inputs] to nodes [inputs+outputs-1]
-        float[] outs = new float[outputs];
+        double[] outs = new double[outputs];
         for (int i = 0; i < outputs; i++) {
-            outs[i] = nodes.get(inputs + i).outputValue;
+            outs[i] = nodes.get(inputs + i).getOutputValue();
         }
 
-        for (int i = 0; i < nodes.size(); i++) {//reset all the nodes for the next feed forward
-            nodes.get(i).inputSum = 0;
+        for (Node node : nodes) {//reset all the nodes for the next feed forward
+            node.setInputSum(0);
         }
 
         return outs;
@@ -124,12 +128,12 @@ public class Genome
     public void generateNetwork()
     {
         connectNodes();
-        network = new ArrayList<Node>();
+        network = new ArrayList<>();
         //for each layer add the node in that layer, since layers cannot connect to themselves there is no need to order the nodes within a layer
 
         for (int l = 0; l < layers; l++) {//for each layer
             for (int i = 0; i < nodes.size(); i++) {//for each node
-                if (nodes.get(i).layer == l) {//if that node is in that layer
+                if (nodes.get(i).getLayer() == l) {//if that node is in that layer
                     network.add(nodes.get(i));
                 }
             }
@@ -149,39 +153,55 @@ public class Genome
             addConnection(innovationHistory);
             return;
         }
-        int randomConnection = floor(random(genes.size()));
+        int randomConnection = Random.uniform(genes.size());
 
-        while (genes.get(randomConnection).fromNode == nodes.get(biasNode) && genes.size() != 1) {
+        while (genes.get(randomConnection).getFromNode() == nodes.get(biasNode) && genes.size() != 1) {
             //dont disconnect bias
-            randomConnection = floor(random(genes.size()));
+            randomConnection = Random.uniform(genes.size());
         }
 
-        genes.get(randomConnection).enabled = false;//disable it
+        genes.get(randomConnection).setEnabled(false);//disable it
 
         int newNodeNo = nextNode;
         nodes.add(new Node(newNodeNo));
         nextNode++;
         //add a new connection to the new node with a weight of 1
-        int connectionInnovationNumber = getInnovationNumber(innovationHistory, genes.get(randomConnection).fromNode, getNode(newNodeNo));
-        genes.add(new connectionGene(genes.get(randomConnection).fromNode, getNode(newNodeNo), 1, connectionInnovationNumber));
+        int connectionInnovationNumber = getInnovationNumber(
+                innovationHistory,
+                genes.get(randomConnection).getFromNode(),
+                getNode(newNodeNo)
+        );
+        genes.add(new ConnectionGene(genes.get(randomConnection).getFromNode(),
+                getNode(newNodeNo),
+                1,
+                connectionInnovationNumber)
+        );
 
 
-        connectionInnovationNumber = getInnovationNumber(innovationHistory, getNode(newNodeNo), genes.get(randomConnection).toNode);
+        connectionInnovationNumber = getInnovationNumber(innovationHistory,
+                getNode(newNodeNo),
+                genes.get(randomConnection).getToNode()
+        );
         //add a new connection from the new node with a weight the same as the disabled connection
-        genes.add(new connectionGene(getNode(newNodeNo), genes.get(randomConnection).toNode, genes.get(randomConnection).weight, connectionInnovationNumber));
-        getNode(newNodeNo).layer = genes.get(randomConnection).fromNode.layer + 1;
+        genes.add(new ConnectionGene(getNode(newNodeNo),
+                genes.get(randomConnection).getToNode(),
+                genes.get(randomConnection).getWeight(),
+                connectionInnovationNumber)
+        );
+        getNode(newNodeNo).setLayer(genes.get(randomConnection).getFromNode().getLayer() + 1);
 
 
         connectionInnovationNumber = getInnovationNumber(innovationHistory, nodes.get(biasNode), getNode(newNodeNo));
         //connect the bias to the new node with a weight of 0
-        genes.add(new connectionGene(nodes.get(biasNode), getNode(newNodeNo), 0, connectionInnovationNumber));
+        genes.add(new ConnectionGene(nodes.get(biasNode), getNode(newNodeNo), 0, connectionInnovationNumber));
 
-        //if the layer of the new node is equal to the layer of the output node of the old connection then a new layer needs to be created
-        //more accurately the layer numbers of all layers equal to or greater than this new node need to be incrimented
-        if (getNode(newNodeNo).layer == genes.get(randomConnection).toNode.layer) {
+        // If the layer of  new node is equal to the layer of the output node of the old connection
+        // then a new layer needs to be created more accurately.
+        // The layer numbers of all layers equal to (or greater than) this new node need to be incremented
+        if (getNode(newNodeNo).getLayer() == genes.get(randomConnection).getToNode().getLayer()) {
             for (int i = 0; i < nodes.size() - 1; i++) {//dont include this newest node
-                if (nodes.get(i).layer >= getNode(newNodeNo).layer) {
-                    nodes.get(i).layer++;
+                if (nodes.get(i).getLayer() >= getNode(newNodeNo).getLayer()) {
+                    nodes.get(i).increaseLayer();
                 }
             }
             layers++;
@@ -196,20 +216,20 @@ public class Genome
     {
         // Cannot add a connection to a fully connected network
         if (fullyConnected()) {
-            println("connection failed");
+            LogHelper.e(TAG, "connection failed");
             return;
         }
 
         //get random nodes
-        int randomNode1 = floor(random(nodes.size()));
-        int randomNode2 = floor(random(nodes.size()));
+        int randomNode1 = Random.uniform(nodes.size());
+        int randomNode2 = Random.uniform(nodes.size());
         while (randomConnectionNodesAreShit(randomNode1, randomNode2)) {//while the random nodes are no good
             //get new ones
-            randomNode1 = floor(random(nodes.size()));
-            randomNode2 = floor(random(nodes.size()));
+            randomNode1 = Random.uniform(nodes.size());
+            randomNode2 = Random.uniform(nodes.size());
         }
         int temp;
-        if (nodes.get(randomNode1).layer > nodes.get(randomNode2).layer) {//if the first random node is after the second then switch
+        if (nodes.get(randomNode1).getLayer() > nodes.get(randomNode2).getLayer()) {//if the first random node is after the second then switch
             temp = randomNode2;
             randomNode2 = randomNode1;
             randomNode1 = temp;
@@ -220,17 +240,16 @@ public class Genome
         int connectionInnovationNumber = getInnovationNumber(innovationHistory, nodes.get(randomNode1), nodes.get(randomNode2));
         //add the connection with a random array
 
-        genes.add(new connectionGene(nodes.get(randomNode1), nodes.get(randomNode2), random(-1, 1), connectionInnovationNumber));//changed this so if error here
+        genes.add(new ConnectionGene(nodes.get(randomNode1), nodes.get(randomNode2), random(-1, 1), connectionInnovationNumber));//changed this so if error here
         connectNodes();
     }
 
     public boolean randomConnectionNodesAreShit(int r1, int r2)
     {
-        if (nodes.get(r1).layer == nodes.get(r2).layer) return true; // if the nodes are in the same layer
-        if (nodes.get(r1).isConnectedTo(nodes.get(r2))) return true; //if the nodes are already connected
+        if (nodes.get(r1).getLayer() == nodes.get(r2).getLayer()) return true; // if the nodes are in the same layer
+        //if the nodes are already connected
+        return nodes.get(r1).isConnectedTo(nodes.get(r2));
 
-
-        return false;
     }
 
 
@@ -254,11 +273,11 @@ public class Genome
             List<Integer> innoNumbers = new ArrayList<>();
             for (int i = 0; i < genes.size(); i++) {
                 // Set the innovation numbers
-                innoNumbers.add(genes.get(i).innovationNo);
+                innoNumbers.add(genes.get(i).getInnovationNo());
             }
 
             // Then add this mutation to the innovationHistory
-            innovationHistory.add(new ConnectionHistory(from.number, to.number, connectionInnovationNumber, innoNumbers));
+            innovationHistory.add(new ConnectionHistory(from.getNumber(), to.getNumber(), connectionInnovationNumber, (ArrayList<Integer>) innoNumbers));
             nextConnectionNo++;
         }
         return connectionInnovationNumber;
@@ -274,7 +293,7 @@ public class Genome
 
         //populate array
         for (int i = 0; i < nodes.size(); i++) {
-            nodesInLayers[nodes.get(i).layer] += 1;
+            nodesInLayers[nodes.get(i).getLayer()] += 1;
         }
 
         //for each layer the maximum amount of connections is the number in this layer * the number of nodes infront of it
@@ -288,37 +307,35 @@ public class Genome
             maxConnections += nodesInLayers[i] * nodesInFront;
         }
 
-        if (maxConnections == genes.size()) {//if the number of connections is equal to the max number of connections possible then it is full
-            return true;
-        }
-        return false;
+        //if the number of connections is equal to the max number of connections possible then it is full
+        return maxConnections == genes.size();
     }
 
 
     /**
      * Mutates the genome
      */
-    public void mutate(ArrayList<ConnectionHistory> innovationHistory)
+    public void mutate(List<ConnectionHistory> innovationHistory)
     {
         if (genes.size() == 0) {
             addConnection(innovationHistory);
         }
 
-        float rand1 = random(1);
+        double rand1 = Random.uniform();
         if (rand1 < 0.8) { // 80% of the time mutate weights
             for (int i = 0; i < genes.size(); i++) {
                 genes.get(i).mutateWeight();
             }
         }
         //5% of the time add a new connection
-        float rand2 = random(1);
+        double rand2 = Random.uniform();
         if (rand2 < 0.08) {
             addConnection(innovationHistory);
         }
 
 
         //1% of the time add a node
-        float rand3 = random(1);
+        double rand3 = Random.uniform();
         if (rand3 < 0.02) {
             addNode(innovationHistory);
         }
@@ -344,18 +361,16 @@ public class Genome
         for (int i = 0; i < genes.size(); i++) {
             boolean setEnabled = true;//is this node in the chlid going to be enabled
 
-            int parent2gene = matchingGene(parent2, genes.get(i).innovationNo);
+            int parent2gene = matchingGene(parent2, genes.get(i).getInnovationNo());
             if (parent2gene != -1) {//if the genes match
-                if (!genes.get(i).enabled || !parent2.genes.get(parent2gene).enabled) {//if either of the matching genes are disabled
-
-                    if (random(1) < 0.75) {//75% of the time disabel the childs gene
+                if (!genes.get(i).isEnabled() || !parent2.genes.get(parent2gene).isEnabled()) {//if either of the matching genes are disabled
+                    if (Random.uniform() < 0.75) {//75% of the time disable the childes gene
                         setEnabled = false;
                     }
                 }
-                float rand = random(1);
+                double rand = Random.uniform();
                 if (rand < 0.5) {
                     childGenes.add(genes.get(i));
-
                     //get gene from this fucker
                 } else {
                     //get gene from parent2
@@ -363,75 +378,86 @@ public class Genome
                 }
             } else {//disjoint or excess gene
                 childGenes.add(genes.get(i));
-                setEnabled = genes.get(i).enabled;
+                setEnabled = genes.get(i).isEnabled();
             }
             isEnabled.add(setEnabled);
         }
 
 
-        //since all excess and disjoint genes are inherited from the more fit parent (this Genome) the childes structure is no different from this parent | with exception of dormant connections being enabled but this wont effect nodes
-        //so all the nodes can be inherited from this parent
+        // Since all excess and disjoint genes are inherited from the more fit parent (this Genome)
+        // the childes structure is no different from this parent | with exception of dormant connections being
+        // enabled but this wont effect nodes. So, all the nodes can be inherited from this parent
         for (int i = 0; i < nodes.size(); i++) {
             child.nodes.add(nodes.get(i).clone());
         }
 
-        //clone all the connections so that they connect the childs new nodes
-
+        //clone all the connections so that they connect the childes new nodes
         for (int i = 0; i < childGenes.size(); i++) {
-            child.genes.add(childGenes.get(i).clone(child.getNode(childGenes.get(i).fromNode.number), child.getNode(childGenes.get(i).toNode.number)));
-            child.genes.get(i).enabled = isEnabled.get(i);
+            child.genes.add(childGenes.get(i).clone(
+                    child.getNode(childGenes.get(i).getFromNode().getNumber()),
+                    child.getNode(childGenes.get(i).getToNode().getNumber()))
+            );
+            child.genes.get(i).setEnabled(isEnabled.get(i));
         }
 
         child.connectNodes();
         return child;
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------
-    //returns whether or not there is a gene matching the input innovation number  in the input genome
+    /**
+     * Returns whether or not there is a gene matching the input innovation number  in the input genome
+     */
     public int matchingGene(Genome parent2, int innovationNumber)
     {
         for (int i = 0; i < parent2.genes.size(); i++) {
-            if (parent2.genes.get(i).innovationNo == innovationNumber) {
+            if (parent2.genes.get(i).getInnovationNo() == innovationNumber) {
                 return i;
             }
         }
         return -1; //no matching gene found
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------
-    //prints out info about the genome to the console
+    /**
+     * Prints out info about the genome to the console
+     */
     public void printGenome()
     {
-        println("Print genome  layers:", layers);
-        println("bias node: " + biasNode);
-        println("nodes");
+        LogHelper.e(TAG, "Print genome  layers:", layers);
+        LogHelper.e(TAG, "bias node: " + biasNode);
+        LogHelper.e(TAG, "nodes");
         for (int i = 0; i < nodes.size(); i++) {
-            print(nodes.get(i).number + ",");
+//            print(nodes.get(i).number + ",");
         }
-        println("Genes");
-        for (int i = 0; i < genes.size(); i++) {//for each connectionGene
-            println("gene " + genes.get(i).innovationNo, "From node " + genes.get(i).fromNode.number, "To node " + genes.get(i).toNode.number,
-                    "is enabled " + genes.get(i).enabled, "from layer " + genes.get(i).fromNode.layer, "to layer " + genes.get(i).toNode.layer, "weight: " + genes.get(i).weight);
+        LogHelper.e(TAG, "Genes");
+        for (ConnectionGene gene : genes) {
+            LogHelper.e(TAG, "gene " + gene.getInnovationNo(),
+                    "From node " + gene.getFromNode().getNumber(),
+                    "To node " + gene.getToNode().getNumber(),
+                    "is enabled " + gene.isEnabled(),
+                    "from layer " + gene.getFromNode().getLayer(),
+                    "to layer " + gene.getToNode().getLayer(),
+                    "weight: " + gene.getWeight()
+            );
         }
-
-        println();
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------
-    //returns a copy of this genome
+    /**
+     * Returns a copy of this genome
+     */
     public Genome clone()
     {
-
         Genome clone = new Genome(inputs, outputs, true);
 
         for (int i = 0; i < nodes.size(); i++) {//copy nodes
             clone.nodes.add(nodes.get(i).clone());
         }
 
-        //copy all the connections so that they connect the clone new nodes
-
+        // Copy all the connections so that they connect the clone new nodes
         for (int i = 0; i < genes.size(); i++) {//copy genes
-            clone.genes.add(genes.get(i).clone(clone.getNode(genes.get(i).fromNode.number), clone.getNode(genes.get(i).toNode.number)));
+            clone.genes.add(genes.get(i).clone(
+                    clone.getNode(genes.get(i).getFromNode().getNumber()),
+                    clone.getNode(genes.get(i).getToNode().getNumber()))
+            );
         }
 
         clone.layers = layers;
@@ -447,20 +473,20 @@ public class Genome
      */
     public void drawGenome(int startX, int startY, int w, int h)
     {
-        //i know its ugly but it works (and is not that important) so I'm not going to mess with it
+        // I know its ugly but it works (and is not that important) so I'm not going to mess with it
         List<List<Node>> allNodes = new ArrayList<>();
-        ArrayList<Vector2D> nodePoses = new ArrayList<>();
-        ArrayList<Integer> nodeNumbers = new ArrayList<>();
+        List<Vector2D> nodePoses = new ArrayList<>();
+        List<Integer> nodeNumbers = new ArrayList<>();
 
-        //get the positions on the screen that each node is supposed to be in
+        // Get the positions on the screen that each node is supposed to be in
 
 
         //split the nodes into layers
         for (int i = 0; i < layers; i++) {
             ArrayList<Node> temp = new ArrayList<Node>();
-            for (int j = 0; j < nodes.size(); j++) {//for each node
-                if (nodes.get(j).layer == i) {//check if it is in this layer
-                    temp.add(nodes.get(j)); //add it to this layer
+            for (Node node : nodes) {//for each node
+                if (node.getLayer() == i) {//check if it is in this layer
+                    temp.add(node); //add it to this layer
                 }
             }
             allNodes.add(temp);//add this layer to all nodes
@@ -473,32 +499,32 @@ public class Genome
             for (int j = 0; j < allNodes.get(i).size(); j++) {//for the position in the layer
                 float y = startY + ((float) (j + 1.0) * h) / (float) (allNodes.get(i).size() + 1.0);
                 nodePoses.add(new Vector2D(x, y));
-                nodeNumbers.add(allNodes.get(i).get(j).number);
+                nodeNumbers.add(allNodes.get(i).get(j).getNumber());
                 if (i == layers - 1) {
-                    println(i, j, x, y);
+                    LogHelper.e(TAG, i, j, x, y);
                 }
             }
         }
 
-        //draw connections
+        // Draw connections
         stroke(0);
         strokeWeight(2);
         for (int i = 0; i < genes.size(); i++) {
-            if (genes.get(i).enabled) {
+            if (genes.get(i).isEnabled()) {
                 stroke(0);
             } else {
                 stroke(100);
             }
             Vector2D from;
             Vector2D to;
-            from = nodePoses.get(nodeNumbers.indexOf(genes.get(i).fromNode.number));
-            to = nodePoses.get(nodeNumbers.indexOf(genes.get(i).toNode.number));
-            if (genes.get(i).weight > 0) {
+            from = nodePoses.get(nodeNumbers.indexOf(genes.get(i).getFromNode().getNumber()));
+            to = nodePoses.get(nodeNumbers.indexOf(genes.get(i).getToNode().getNumber()));
+            if (genes.get(i).getWeight() > 0) {
                 stroke(255, 0, 0);
             } else {
                 stroke(0, 0, 255);
             }
-            strokeWeight(map(abs(genes.get(i).weight), 0, 1, 0, 5));
+            strokeWeight(map(abs(genes.get(i).getWeight()), 0, 1, 0, 5));
             line(from.x, from.y, to.x, to.y);
         }
 
@@ -512,7 +538,47 @@ public class Genome
             fill(0);
             textAlign(CENTER, CENTER);
 
-            text(nodeNumbers.get(i), nodePoses.get(i).x, nodePoses.get(i).y);
+            text(nodeNumbers.get(i), nodePoses.get(i).getX(), nodePoses.get(i).getY());
         }
+    }
+
+    public List<ConnectionGene> getGenes()
+    {
+        return genes;
+    }
+
+    public List<Node> getNodes()
+    {
+        return nodes;
+    }
+
+    public List<Node> getNetwork()
+    {
+        return network;
+    }
+
+    public int getInputs()
+    {
+        return inputs;
+    }
+
+    public int getOutputs()
+    {
+        return outputs;
+    }
+
+    public int getLayers()
+    {
+        return layers;
+    }
+
+    public int getNextNode()
+    {
+        return nextNode;
+    }
+
+    public int getBiasNode()
+    {
+        return biasNode;
     }
 }

@@ -14,15 +14,15 @@ import java.util.List;
 public class Node
 {
     private int number;
-    private float inputSum = 0; //current sum i.e. before activation
-    private float outputValue = 0; //after activation function is applied
+
+    private double inputSum = 0; //current sum i.e. before activation
+    private double outputValue = 0; //after activation function is applied
 
     private List<ConnectionGene> outputConnections = new ArrayList<>();
 
     private int layer = 0;
 
-    private Vector2D drawPos = new PVector();
-
+    private Vector2D drawPos = new Vector2D();
 
     public Node(int no)
     {
@@ -38,9 +38,10 @@ public class Node
             outputValue = sigmoid(inputSum);
         }
 
-        for (int i = 0; i < outputConnections.size(); i++) {//for each connection
-            if (outputConnections.get(i).enabled) {//dont do shit if not enabled
-                outputConnections.get(i).toNode.inputSum += outputConnections.get(i).weight * outputValue;//add the weighted output to the sum of the inputs of whatever node this node is connected to
+        for (ConnectionGene outputConnection : outputConnections) {
+            if (outputConnection.isEnabled()) {//don't do shit if not enabled
+                //add the weighted output to the sum of the inputs of whatever node this node is connected to
+                outputConnection.getToNode().inputSum += outputConnection.getWeight() * outputValue;
             }
         }
     }
@@ -57,10 +58,9 @@ public class Node
     /**
      * Sigmoid activation function
      */
-    public float sigmoid(float x)
+    public double sigmoid(double x)
     {
-        float y = 1 / (1 + Math.pow((float) Math.E, -4.9 * x));
-        return y;
+        return 1 / (1 + Math.pow(Math.E, -4.9 * x));
     }
 
 
@@ -72,6 +72,74 @@ public class Node
         Node clone = new Node(number);
         clone.layer = layer;
         return clone;
+    }
+
+
+    public void increaseLayer()
+    {
+        this.layer++;
+    }
+
+
+    public void setNumber(int number)
+    {
+        this.number = number;
+    }
+
+    public void setInputSum(double inputSum)
+    {
+        this.inputSum = inputSum;
+    }
+
+    public void setOutputValue(double outputValue)
+    {
+        this.outputValue = outputValue;
+    }
+
+    public void setOutputConnections(List<ConnectionGene> outputConnections)
+    {
+        this.outputConnections = outputConnections;
+    }
+
+    public void setLayer(int layer)
+    {
+        this.layer = layer;
+    }
+
+    public void setDrawPos(Vector2D drawPos)
+    {
+        this.drawPos = drawPos;
+    }
+
+
+    public int getNumber()
+    {
+        return number;
+    }
+
+    public double getInputSum()
+    {
+        return inputSum;
+    }
+
+    public double getOutputValue()
+    {
+        return outputValue;
+    }
+
+    public List<ConnectionGene> getOutputConnections()
+    {
+        return outputConnections;
+    }
+
+    public int getLayer()
+    {
+        return layer;
+    }
+
+    public Vector2D getDrawPos()
+    {
+        return drawPos;
     }
 
     /**
@@ -87,13 +155,13 @@ public class Node
         //you get it
         if (node.layer < layer) {
             for (int i = 0; i < node.outputConnections.size(); i++) {
-                if (node.outputConnections.get(i).toNode == this) {
+                if (node.outputConnections.get(i).getToNode() == this) {
                     return true;
                 }
             }
         } else {
             for (int i = 0; i < outputConnections.size(); i++) {
-                if (outputConnections.get(i).toNode == node) {
+                if (outputConnections.get(i).getToNode() == node) {
                     return true;
                 }
             }

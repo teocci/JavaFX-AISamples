@@ -1,6 +1,5 @@
 package com.github.teocci.algo.ai.javafx.base.model.dino;
 
-import com.github.teocci.algo.ai.javafx.base.model.dot.Dot;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 
 /**

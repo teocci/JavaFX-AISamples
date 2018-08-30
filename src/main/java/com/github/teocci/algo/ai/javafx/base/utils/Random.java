@@ -124,4 +124,68 @@ public class Random
         }
         return a + uniform() * (b - a);
     }
+
+
+    /**
+     * Returns a random boolean from a Bernoulli distribution with success
+     * probability <em>p</em>.
+     *
+     * @param p the probability of returning {@code true}
+     * @return {@code true} with probability {@code p} and
+     * {@code false} with probability {@code 1 - p}
+     * @throws IllegalArgumentException unless {@code 0} &le; {@code p} &le; {@code 1.0}
+     */
+    public static boolean bernoulli(double p)
+    {
+        if (!(p >= 0.0 && p <= 1.0))
+            throw new IllegalArgumentException("probability p must be between 0.0 and 1.0: " + p);
+        return uniform() < p;
+    }
+
+    /**
+     * Returns a random boolean from a Bernoulli distribution with success
+     * probability 1/2.
+     *
+     * @return {@code true} with probability 1/2 and
+     * {@code false} with probability 1/2
+     */
+    public static boolean bernoulli()
+    {
+        return bernoulli(0.5);
+    }
+
+    /**
+     * Returns a random real number from a standard Gaussian distribution.
+     *
+     * @return a random real number from a standard Gaussian distribution
+     * (mean 0 and standard deviation 1).
+     */
+    public static double gaussian()
+    {
+        // use the polar form of the Box-Muller transform
+        double r, x, y;
+        do {
+            x = uniform(-1.0, 1.0);
+            y = uniform(-1.0, 1.0);
+            r = x * x + y * y;
+        } while (r >= 1 || r == 0);
+        return x * Math.sqrt(-2 * Math.log(r) / r);
+
+        // Remark:  y * Math.sqrt(-2 * Math.log(r) / r)
+        // is an independent random gaussian
+    }
+
+    /**
+     * Returns a random real number from a Gaussian distribution with mean &mu;
+     * and standard deviation &sigma;.
+     *
+     * @param mu    the mean
+     * @param sigma the standard deviation
+     * @return a real number distributed according to the Gaussian distribution
+     * with mean {@code mu} and standard deviation {@code sigma}
+     */
+    public static double gaussian(double mu, double sigma)
+    {
+        return mu + sigma * gaussian();
+    }
 }

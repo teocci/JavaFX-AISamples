@@ -1,7 +1,7 @@
 package com.github.teocci.algo.ai.javafx.sample;
 
 import com.github.teocci.algo.ai.javafx.base.animators.dot.Animator;
-import com.github.teocci.algo.ai.javafx.base.Simulator;
+import com.github.teocci.algo.ai.javafx.base.controllers.dot.GenerationController;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -16,7 +16,7 @@ import javafx.stage.Stage;
  */
 public class SmartDots extends Application
 {
-    private Simulator simulator;
+    private GenerationController generationController;
 
     private Animator animator;
 
@@ -26,19 +26,19 @@ public class SmartDots extends Application
         Pane canvas = new Pane();
         Scene scene = new Scene(canvas, 800, 800);
 
-        simulator = new Simulator(1000, canvas);
+        generationController = new GenerationController(1000, canvas);
 
         Circle ball = new Circle(10, Color.BLACK);
         ball.relocate(0, 10);
 
-        canvas.getChildren().addAll(simulator.getDots());
+        canvas.getChildren().addAll(generationController.getDots());
 
         stage.setTitle("Smart Dots");
         stage.setScene(scene);
         stage.show();
 
 
-        animator = new Animator(simulator);
+        animator = new Animator(generationController);
         animator.start();
 
 //        Bounds bounds = canvas.getBoundsInLocal();

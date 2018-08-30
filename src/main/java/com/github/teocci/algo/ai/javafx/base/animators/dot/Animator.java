@@ -1,6 +1,6 @@
 package com.github.teocci.algo.ai.javafx.base.animators.dot;
 
-import com.github.teocci.algo.ai.javafx.base.Simulator;
+import com.github.teocci.algo.ai.javafx.base.controllers.dot.GenerationController;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 import javafx.animation.AnimationTimer;
 
@@ -15,11 +15,11 @@ public class Animator extends AnimationTimer
 
     private long lastTime = System.currentTimeMillis();
 
-    private Simulator simulator;
+    private GenerationController generationController;
 
-    public Animator(Simulator simulator)
+    public Animator(GenerationController generationController)
     {
-        this.simulator = simulator;
+        this.generationController = generationController;
     }
 
     @Override
@@ -29,15 +29,15 @@ public class Animator extends AnimationTimer
         if (now - lastTime > 10000000) {
             lastTime = now;
 
-            if (simulator.allDotsDead()) {
+            if (generationController.allDotsDead()) {
                 // Genetic algorithm
-                simulator.calculateFitness();
-                simulator.naturalSelection();
-                simulator.mutate();
+                generationController.calculateFitness();
+                generationController.naturalSelection();
+                generationController.mutate();
             } else {
                 // If any of the dots are still alive then update and then show them
 //                Platform.runLater(() -> {
-                simulator.update();
+                generationController.update();
 //                });
             }
         }
