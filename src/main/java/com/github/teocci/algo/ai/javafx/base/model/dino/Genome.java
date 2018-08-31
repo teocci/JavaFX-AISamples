@@ -2,7 +2,7 @@ package com.github.teocci.algo.ai.javafx.base.model.dino;
 
 import com.github.teocci.algo.ai.javafx.base.connections.ConnectionGene;
 import com.github.teocci.algo.ai.javafx.base.connections.ConnectionHistory;
-import com.github.teocci.algo.ai.javafx.base.controllers.dot.GenerationController;
+import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
 import com.github.teocci.algo.ai.javafx.base.model.dot.Vector2D;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 import com.github.teocci.algo.ai.javafx.base.utils.Random;
@@ -85,19 +85,19 @@ public class Genome
      */
     public void connectNodes()
     {
-        for (int i = 0; i < nodes.size(); i++) {//clear the connections
-            nodes.get(i).getOutputConnections().clear();
+        for (Node node : nodes) {//clear the connections
+            node.getOutputConnections().clear();
         }
 
-        for (int i = 0; i < genes.size(); i++) {//for each connectionGene
-            genes.get(i).getFromNode().getOutputConnections().add(genes.get(i));//add it to node
+        for (ConnectionGene gene : genes) {//for each connectionGene
+            gene.getFromNode().getOutputConnections().add(gene);//add it to node
         }
     }
 
     /**
      * Feeding in input values into the NN and returning output array
      */
-    public double[] feedForward(float[] inputValues)
+    public double[] feedForward(double[] inputValues)
     {
         //set the outputs of the input nodes
         for (int i = 0; i < inputs; i++) {
@@ -132,9 +132,9 @@ public class Genome
         //for each layer add the node in that layer, since layers cannot connect to themselves there is no need to order the nodes within a layer
 
         for (int l = 0; l < layers; l++) {//for each layer
-            for (int i = 0; i < nodes.size(); i++) {//for each node
-                if (nodes.get(i).getLayer() == l) {//if that node is in that layer
-                    network.add(nodes.get(i));
+            for (Node node : nodes) {//for each node
+                if (node.getLayer() == l) {//if that node is in that layer
+                    network.add(node);
                 }
             }
         }
@@ -240,7 +240,12 @@ public class Genome
         int connectionInnovationNumber = getInnovationNumber(innovationHistory, nodes.get(randomNode1), nodes.get(randomNode2));
         //add the connection with a random array
 
-        genes.add(new ConnectionGene(nodes.get(randomNode1), nodes.get(randomNode2), random(-1, 1), connectionInnovationNumber));//changed this so if error here
+        genes.add(new ConnectionGene(
+                nodes.get(randomNode1),
+                nodes.get(randomNode2),
+                Random.uniform(-1, 1),
+                connectionInnovationNumber)
+        );//changed this so if error here
         connectNodes();
     }
 
@@ -259,11 +264,11 @@ public class Genome
     public int getInnovationNumber(List<ConnectionHistory> innovationHistory, Node from, Node to)
     {
         boolean isNew = true;
-        int connectionInnovationNumber = nextConnectionNo;
-        for (int i = 0; i < innovationHistory.size(); i++) {//for each previous mutation
-            if (innovationHistory.get(i).matches(this, from, to)) {//if match found
+        int connectionInnovationNumber = MainController.getInstance().getNextConnectionNo();
+        for (ConnectionHistory anInnovationHistory : innovationHistory) {//for each previous mutation
+            if (anInnovationHistory.matches(this, from, to)) {//if match found
                 isNew = false;//its not a new mutation
-                connectionInnovationNumber = innovationHistory.get(i).innovationNumber; //set the innovation number as the innovation number of the match
+                connectionInnovationNumber = anInnovationHistory.getInnovationNumber(); //set the innovation number as the innovation number of the match
                 break;
             }
         }
@@ -271,14 +276,19 @@ public class Genome
         // If a mutation is new then create an arrayList of integers representing the current state of the genome
         if (isNew) {
             List<Integer> innoNumbers = new ArrayList<>();
-            for (int i = 0; i < genes.size(); i++) {
+            for (ConnectionGene gene : genes) {
                 // Set the innovation numbers
-                innoNumbers.add(genes.get(i).getInnovationNo());
+                innoNumbers.add(gene.getInnovationNo());
             }
 
             // Then add this mutation to the innovationHistory
-            innovationHistory.add(new ConnectionHistory(from.getNumber(), to.getNumber(), connectionInnovationNumber, (ArrayList<Integer>) innoNumbers));
-            nextConnectionNo++;
+            innovationHistory.add(new ConnectionHistory(
+                    from.getNumber(),
+                    to.getNumber(),
+                    connectionInnovationNumber,
+                    innoNumbers)
+            );
+            MainController.getInstance().increaseNextConnectionNo();
         }
         return connectionInnovationNumber;
     }
@@ -495,9 +505,9 @@ public class Genome
         //for each layer add the position of the node on the screen to the node posses arraylist
         for (int i = 0; i < layers; i++) {
             fill(255, 0, 0);
-            float x = startX + (float) ((i) * w) / (float) (layers - 1);
+            double x = startX + (double) ((i) * w) / (double) (layers - 1);
             for (int j = 0; j < allNodes.get(i).size(); j++) {//for the position in the layer
-                float y = startY + ((float) (j + 1.0) * h) / (float) (allNodes.get(i).size() + 1.0);
+                double y = startY + ((j + 1.0) * h) / (allNodes.get(i).size() + 1.0);
                 nodePoses.add(new Vector2D(x, y));
                 nodeNumbers.add(allNodes.get(i).get(j).getNumber());
                 if (i == layers - 1) {

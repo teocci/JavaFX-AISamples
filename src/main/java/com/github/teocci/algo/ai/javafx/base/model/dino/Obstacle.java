@@ -1,29 +1,44 @@
 package com.github.teocci.algo.ai.javafx.base.model.dino;
 
+import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
+import javafx.scene.image.Image;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Paint;
+
+import static com.github.teocci.algo.ai.javafx.base.utils.Config.IMG_CACTUS_BIG;
+import static com.github.teocci.algo.ai.javafx.base.utils.Config.IMG_CACTUS_MANY;
+import static com.github.teocci.algo.ai.javafx.base.utils.Config.IMG_CACTUS_SMALL;
 
 /**
  * Created by teocci.
  *
  * @author teocci@yandex.com on 2018-Aug-27
  */
-public class Obstacle
+public class Obstacle extends Element
 {
     private static final String TAG = LogHelper.makeLogTag(Obstacle.class);
+
+    private Image[] images = new Image[]{
+            new Image(IMG_CACTUS_SMALL),
+            new Image(IMG_CACTUS_BIG),
+            new Image(IMG_CACTUS_MANY)
+    };
 
     private static final int TYPE_SMALL = 0;
     private static final int TYPE_BIG = 1;
     private static final int TYPE_MANY = 2;
 
+    private double posX;
 
-    private float posX;
     private int w;
     private int h;
+
     private int type;
 
     public Obstacle(int t)
     {
-        posX = width;
+        posX = MainController.getInstance().getWidth();
         type = t;
         switch (type) {
             case TYPE_SMALL:
@@ -41,45 +56,70 @@ public class Obstacle
         }
     }
 
-    //show the cactus
-    public void show()
-    {
-        fill(0);
-        rectMode(CENTER);
-        switch (type) {
-            case 0:
-                image(smallCactus, posX - smallCactus.width / 2, height - groundHeight - smallCactus.height);
-                break;
-            case 1:
-                image(bigCactus, posX - bigCactus.width / 2, height - groundHeight - bigCactus.height);
-                break;
-            case 2:
-                image(manySmallCactus, posX - manySmallCactus.width / 2, height - groundHeight - manySmallCactus.height);
-                break;
-        }
-    }
-
     // move the obstacle
-    public void move(float speed)
+    @Override
+    public void move(double speed)
     {
         posX -= speed;
     }
 
-    //returns whether or not the player collides with this obstacle
-    public boolean collided(float playerX, float playerY, float playerWidth, float playerHeight)
+    @Override
+    public void show()
     {
-        float playerLeft = playerX - playerWidth / 2;
-        float playerRight = playerX + playerWidth / 2;
-        float thisLeft = posX - w / 2;
-        float thisRight = posX + w / 2;
+//        fill(0);
+//        rectMode(CENTER);
+
+        setFill(loadImage(type));
+    }
+
+    /**
+     * Returns whether or not the player collides with this obstacle
+     */
+    @Override
+    public boolean collided(double playerX, double playerY, double playerWidth, double playerHeight)
+    {
+        double playerLeft = playerX - playerWidth / 2;
+        double playerRight = playerX + playerWidth / 2;
+        double thisLeft = posX - w / 2;
+        double thisRight = posX + w / 2;
 
         if ((playerLeft <= thisRight && playerRight >= thisLeft) || (thisLeft <= playerRight && thisRight >= playerLeft)) {
-            float playerDown = playerY - playerHeight / 2;
-            float thisUp = h;
-            if (playerDown <= thisUp) {
-                return true;
-            }
+            double playerDown = playerY - playerHeight / 2;
+            double thisUp = h;
+            return playerDown <= thisUp;
         }
         return false;
+    }
+
+    @Override
+    public double getPosX()
+    {
+        return posX;
+    }
+
+    @Override
+    public double getPosY()
+    {
+        return -1;
+    }
+
+    @Override
+    public int getW()
+    {
+        return w;
+    }
+
+    @Override
+    public int getH()
+    {
+        return h;
+    }
+
+    private Paint loadImage(int type)
+    {
+        Image image = images[type];
+        int groundHeight = MainController.getInstance().getGroundHeight();
+        double height = MainController.getInstance().getHeight();
+        return new ImagePattern(image, 0, 0, posX - image.getWidth() / 2, height - groundHeight - image.getHeight(), true);
     }
 }

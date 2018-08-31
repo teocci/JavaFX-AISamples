@@ -2,6 +2,7 @@ package com.github.teocci.algo.ai.javafx.base.connections;
 
 import com.github.teocci.algo.ai.javafx.base.model.dino.Genome;
 import com.github.teocci.algo.ai.javafx.base.model.dino.Node;
+import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +14,11 @@ import java.util.List;
  */
 public class ConnectionHistory
 {
+    private static final String TAG = LogHelper.makeLogTag(Genome.class);
+
     private int fromNode;
     private int toNode;
+
     private int innovationNumber;
 
 
@@ -24,12 +28,12 @@ public class ConnectionHistory
     private List<Integer> innovationNumbers;
 
 
-    public ConnectionHistory(int from, int to, int inno, ArrayList<Integer> innovationNos)
+    public ConnectionHistory(int from, int to, int inno, List<Integer> innovationNos)
     {
         fromNode = from;
         toNode = to;
         innovationNumber = inno;
-        innovationNumbers = (ArrayList<Integer>) innovationNos.clone();
+        innovationNumbers = new ArrayList<>(innovationNos);
     }
 
     /**
@@ -52,5 +56,10 @@ public class ConnectionHistory
             }
         }
         return false;
+    }
+
+    public int getInnovationNumber()
+    {
+        return innovationNumber;
     }
 }

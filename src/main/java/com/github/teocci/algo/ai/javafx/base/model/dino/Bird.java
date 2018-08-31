@@ -1,24 +1,41 @@
 package com.github.teocci.algo.ai.javafx.base.model.dino;
 
+import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
+import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
+import javafx.scene.image.Image;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Paint;
+
+import static com.github.teocci.algo.ai.javafx.base.utils.Config.IMG_BIRD_00;
+import static com.github.teocci.algo.ai.javafx.base.utils.Config.IMG_BIRD_01;
+
 /**
  * Created by teocci.
  *
  * @author teocci@yandex.com on 2018-Aug-30
  */
-public class Bird
+public class Bird extends Element
 {
-    float w = 60;
-    float h = 50;
+    private static final String TAG = LogHelper.makeLogTag(Genome.class);
 
-    float posX;
-    float posY;
+    private Image[] images = new Image[]{
+            new Image(IMG_BIRD_00),
+            new Image(IMG_BIRD_01)
+    };
 
-    int flapCount = 0;
-    int typeOfBird;
+    private int w = 60;
+    private int h = 50;
+
+    private double posX;
+    private double posY;
+
+    private int flapCount = 0;
+
+    private int typeOfBird;
 
     public Bird(int type)
     {
-        posX = width;
+        posX = MainController.getInstance().getWidth();
         typeOfBird = type;
         switch (type) {
             case 0://flying low
@@ -33,17 +50,32 @@ public class Bird
         }
     }
 
+
+    /**
+     * Moves the bird
+     */
+    @Override
+    public void move(double speed)
+    {
+        posX -= speed;
+    }
+
     /**
      * Shows the bird
      */
+    @Override
     public void show()
     {
         flapCount++;
 
-        if (flapCount < 0) {//flap the bird
-            image(bird, posX - bird.width / 2, height - groundHeight - (posY + bird.height - 20));
+        int groundHeight = MainController.getInstance().getGroundHeight();
+        double height = MainController.getInstance().getHeight();
+
+        // Flap the bird
+        if (flapCount < 0) {
+            setFill(loadImage(0));
         } else {
-            image(bird1, posX - bird1.width / 2, height - groundHeight - (posY + bird1.height - 20));
+            setFill(new ImagePattern(images[1], 0, 0, posX - images[1].getWidth() / 2, height - groundHeight - (posY + images[1].getHeight() - 20), true));
         }
 
         if (flapCount > 15) {
@@ -52,31 +84,62 @@ public class Bird
     }
 
     /**
-     * Moves the bird
-     */
-    public void move(float speed)
-    {
-        posX -= speed;
-    }
-
-    /**
      * Returns whether or not the bird collides with the player
      */
-    public boolean collided(float playerX, float playerY, float playerWidth, float playerHeight)
+    @Override
+    public boolean collided(double playerX, double playerY, double playerWidth, double playerHeight)
     {
-        float playerLeft = playerX - playerWidth / 2;
-        float playerRight = playerX + playerWidth / 2;
-        float thisLeft = posX - w / 2;
-        float thisRight = posX + w / 2;
+        double playerLeft = playerX - playerWidth / 2;
+        double playerRight = playerX + playerWidth / 2;
+        double thisLeft = posX - w / 2;
+        double thisRight = posX + w / 2;
 
         if ((playerLeft <= thisRight && playerRight >= thisLeft) || (thisLeft <= playerRight && thisRight >= playerLeft)) {
-            float playerUp = playerY + playerHeight / 2;
-            float playerDown = playerY - playerHeight / 2;
-            float thisUp = posY + h / 2;
-            float thisDown = posY - h / 2;
+            double playerUp = playerY + playerHeight / 2;
+            double playerDown = playerY - playerHeight / 2;
+            double thisUp = posY + h / 2;
+            double thisDown = posY - h / 2;
+
             return playerDown <= thisUp && playerUp >= thisDown;
         }
 
         return false;
+    }
+
+    @Override
+    public double getPosX()
+    {
+        return posX;
+    }
+
+    @Override
+    public double getPosY()
+    {
+        return posY;
+    }
+
+    @Override
+    public int getW()
+    {
+        return w;
+    }
+
+    @Override
+    public int getH()
+    {
+        return h;
+    }
+
+    private Paint loadImage(int type)
+    {
+        Image image = images[type];
+        int groundHeight = MainController.getInstance().getGroundHeight();
+        double height = MainController.getInstance().getHeight();
+        return new ImagePattern(image, 0, 0, posX - image.getWidth() / 2, height - groundHeight - (posY + image.getHeight() - 20), true);
+    }
+
+    public int getTypeOfBird()
+    {
+        return typeOfBird;
     }
 }

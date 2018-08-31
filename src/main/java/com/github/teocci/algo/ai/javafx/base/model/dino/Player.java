@@ -1,15 +1,34 @@
 package com.github.teocci.algo.ai.javafx.base.model.dino;
 
+import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
+import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
+import javafx.scene.image.Image;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Paint;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.github.teocci.algo.ai.javafx.base.utils.CommonHelper.execMove;
+import static com.github.teocci.algo.ai.javafx.base.utils.Config.*;
 
 /**
  * Created by teocci.
  *
  * @author teocci@yandex.com on 2018-Aug-30
  */
-public class Player
+public class Player extends Element
 {
+    private static final String TAG = LogHelper.makeLogTag(Genome.class);
+
+    private Image[] images = new Image[]{
+            new Image(IMG_DINO_DUCK_00),
+            new Image(IMG_DINO_DUCK_01),
+            new Image(IMG_DINO_RUN_00),
+            new Image(IMG_DINO_RUN_01),
+            new Image(IMG_DINO_JUMP)
+    };
+
     private double fitness;
 
     private Genome brain;
@@ -38,6 +57,7 @@ public class Player
 
     private List<Obstacle> replayObstacles = new ArrayList<>();
     private List<Bird> replayBirds = new ArrayList<>();
+
     private List<Integer> localObstacleHistory = new ArrayList<>();
     private List<Integer> localRandomAdditionHistory = new ArrayList<>();
 
@@ -50,36 +70,58 @@ public class Player
     private boolean replay = false;
     private boolean duck = false;
 
+    private final MainController controller;
+
     public Player()
     {
         brain = new Genome(genomeInputs, genomeOutputs);
+        controller = MainController.getInstance();
     }
+
+    @Override
+    public void move(double speed) {}
 
     /**
      * Show the dino
      */
+    @Override
     public void show()
     {
-        if (duck && posY == 0) {
-            if (runCount < 0) {
-                image(dinoDuck, playerXpos - dinoDuck.width / 2, height - groundHeight - (posY + dinoDuck.height));
-            } else {
-
-                image(dinoDuck1, playerXpos - dinoDuck1.width / 2, height - groundHeight - (posY + dinoDuck1.height));
-            }
-        } else if (posY == 0) {
-            if (runCount < 0) {
-                image(dinoRun1, playerXpos - dinoRun1.width / 2, height - groundHeight - (posY + dinoRun1.height));
-            } else {
-                image(dinoRun2, playerXpos - dinoRun2.width / 2, height - groundHeight - (posY + dinoRun2.height));
-            }
-        } else {
-            image(dinoJump, playerXpos - dinoJump.width / 2, height - groundHeight - (posY + dinoJump.height));
-        }
+        setFill(loadImage(getType()));
         runCount++;
         if (runCount > 5) {
             runCount = -5;
         }
+    }
+
+    @Override
+    protected boolean collided(double posX, double v, double v1, double height)
+    {
+        return false;
+    }
+
+    @Override
+    public double getPosX()
+    {
+        return -1;
+    }
+
+    @Override
+    public double getPosY()
+    {
+        return posY;
+    }
+
+    @Override
+    public int getW()
+    {
+        return -1;
+    }
+
+    @Override
+    public int getH()
+    {
+        return -1;
     }
 
     public void incrementCounters()
@@ -104,43 +146,60 @@ public class Player
         }
 
         if (!replay) {
-            for (int i = 0; i < obstacles.size(); i++) {
-                if (obstacles.get(i).collided(playerXpos, posY + dinoRun1.height / 2, dinoRun1.width * 0.5, dinoRun1.height)) {
-                    die();
-                }
-            }
+            globalMove(controller.getObstacles(), controller.getBirds());
+        } else {
+            globalMove(replayObstacles, replayBirds);
+        }
+    }
 
-            for (int i = 0; i < birds.size(); i++) {
-                if (duck && posY == 0) {
-                    if (birds.get(i).collided(playerXpos, posY + dinoDuck.height / 2, dinoDuck.width * 0.8, dinoDuck.height)) {
-                        die();
-                    }
-                } else {
-                    if (birds.get(i).collided(playerXpos, posY + dinoRun1.height / 2, dinoRun1.width * 0.5, dinoRun1.height)) {
-                        die();
-                    }
-                }
+    private int getType()
+    {
+        if (duck && posY == 0) {
+            if (runCount < 0) {
+                return 0;
+            } else {
+                return 1;
+            }
+        } else if (posY == 0) {
+            if (runCount < 0) {
+                return 2;
+            } else {
+                return 3;
             }
         } else {
-            // If replaying then move local obstacles
-            for (Obstacle replayObstacle : replayObstacles) {
-                if (replayObstacle.collided(playerXpos, posY + dinoRun1.height / 2, dinoRun1.width * 0.5, dinoRun1.height)) {
-                    die();
-                }
-            }
+            return 4;
+        }
+    }
 
+    private Paint loadImage(int type)
+    {
+        Image image = images[type];
+        int posX = controller.getPlayerXPos();
+        double height = controller.getHeight();
+        int groundHeight = controller.getGroundHeight();
 
-            for (Bird replayBird : replayBirds) {
-                if (duck && posY == 0) {
-                    if (replayBird.collided(playerXpos, posY + dinoDuck.height / 2, dinoDuck.width * 0.8, dinoDuck.height)) {
-                        die();
-                    }
-                } else {
-                    if (replayBird.collided(playerXpos, posY + dinoRun1.height / 2, dinoRun1.width * 0.5, dinoRun1.height)) {
-                        die();
-                    }
-                }
+        return new ImagePattern(image, 0, 0, posX - image.getWidth() / 2, height - groundHeight - (posY + image.getHeight()), true);
+    }
+
+    private void globalMove(List<Obstacle> obstacles, List<Bird> birds)
+    {
+        for (Obstacle obstacle : obstacles) {
+            calculateCollision(obstacle, images[DINO_RUN_00]);
+        }
+        for (Bird bird : birds) {
+            if (duck && posY == 0) {
+                calculateCollision(bird, images[DINO_DUCK_00]);
+            } else {
+                calculateCollision(bird, images[DINO_RUN_00]);
             }
+        }
+    }
+
+    private void calculateCollision(Element element, Image player)
+    {
+        int posX = controller.getPlayerXPos();
+        if (element.collided(posX, posY + player.getHeight() / 2, player.getWidth() * 0.5, player.getHeight())) {
+            die();
         }
     }
 
@@ -183,150 +242,112 @@ public class Player
     public void look()
     {
         if (!replay) {
-            float temp = 0;
-            float min = 10000;
-            int minIndex = -1;
-            boolean berd = false;
+            loadVision(controller.getObstacles(), controller.getBirds());
+        } else {//if replaying then use local shit
+            loadVision(replayObstacles, replayBirds);
+        }
+    }
+
+    private void loadVision(List<Obstacle> obstacles, List<Bird> birds)
+    {
+        double temp = 0;
+        double min = 10000;
+        int minIndex = -1;
+        boolean birdFound = false;
+
+        for (int i = 0; i < obstacles.size(); i++) {
+            Obstacle obstacle = obstacles.get(i);
+            if (isLeastDistance(obstacle, min)) {
+                min = calculateDistance(obstacle);
+                minIndex = i;
+            }
+        }
+
+        for (int i = 0; i < birds.size(); i++) {
+            Bird bird = birds.get(i);
+            if (isLeastDistance(bird, min)) {
+                min = calculateDistance(bird);
+                minIndex = i;
+                birdFound = true;
+            }
+        }
+        vision[4] = controller.getSpeed();
+        vision[5] = posY;
+
+        // If there are no obstacles
+        if (minIndex == -1) {
+            emptyVision();
+        } else {
+            vision[0] = 1.0 / (min / 10.0);
+            if (birdFound) {
+                vision[1] = birds.get(minIndex).getH();
+                vision[2] = birds.get(minIndex).getW();
+                if (birds.get(minIndex).getTypeOfBird() == 0) {
+                    vision[3] = 0;
+                } else {
+                    vision[3] = birds.get(minIndex).getPosY();
+                }
+            } else {
+                vision[1] = obstacles.get(minIndex).getH();
+                vision[2] = obstacles.get(minIndex).getW();
+                vision[3] = 0;
+            }
+
+
+            // Vision 6 is the gap between the this obstacle and the next one
+            int bestIndex = minIndex;
+            double closestDist = min;
+            min = 10000;
+            minIndex = -1;
             for (int i = 0; i < obstacles.size(); i++) {
-                if (obstacles.get(i).posX + obstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) < min && obstacles.get(i).posX + obstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) > 0) {//if the distance between the left of the player and the right of the obstacle is the least
-                    min = obstacles.get(i).posX + obstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2);
+                Obstacle obstacle = obstacles.get(i);
+                if ((birdFound || i != bestIndex) && isLeastDistance(obstacle, min)) {
+                    min = calculateDistance(obstacle);
                     minIndex = i;
                 }
             }
 
             for (int i = 0; i < birds.size(); i++) {
-                if (birds.get(i).posX + birds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) < min && birds.get(i).posX + birds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) > 0) {//if the distance between the left of the player and the right of the obstacle is the least
-                    min = birds.get(i).posX + birds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2);
+                Bird bird = birds.get(i);
+                if ((!birdFound || i != bestIndex) && isLeastDistance(bird, min)) {
+                    min = calculateDistance(bird);
                     minIndex = i;
-                    berd = true;
                 }
             }
-            vision[4] = speed;
-            vision[5] = posY;
 
-
-            if (minIndex == -1) {//if there are no obstacles
-                vision[0] = 0;
-                vision[1] = 0;
-                vision[2] = 0;
-                vision[3] = 0;
+            // If there is only one object on the screen
+            if (minIndex == -1) {
                 vision[6] = 0;
             } else {
-
-                vision[0] = 1.0 / (min / 10.0);
-                if (berd) {
-                    vision[1] = birds.get(minIndex).h;
-                    vision[2] = birds.get(minIndex).w;
-                    if (birds.get(minIndex).typeOfBird == 0) {
-                        vision[3] = 0;
-                    } else {
-                        vision[3] = birds.get(minIndex).posY;
-                    }
-                } else {
-                    vision[1] = obstacles.get(minIndex).h;
-                    vision[2] = obstacles.get(minIndex).w;
-                    vision[3] = 0;
-                }
-
-
-                //vision 6 is the gap between the this obstacle and the next one
-                int bestIndex = minIndex;
-                float closestDist = min;
-                min = 10000;
-                minIndex = -1;
-                for (int i = 0; i < obstacles.size(); i++) {
-                    if ((berd || i != bestIndex) && obstacles.get(i).posX + obstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) < min && obstacles.get(i).posX + obstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) > 0) {//if the distance between the left of the player and the right of the obstacle is the least
-                        min = obstacles.get(i).posX + obstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2);
-                        minIndex = i;
-                    }
-                }
-
-                for (int i = 0; i < birds.size(); i++) {
-                    if ((!berd || i != bestIndex) && birds.get(i).posX + birds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) < min && birds.get(i).posX + birds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) > 0) {//if the distance between the left of the player and the right of the obstacle is the least
-                        min = birds.get(i).posX + birds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2);
-                        minIndex = i;
-                    }
-                }
-
-                if (minIndex == -1) {//if there is only one obejct on the screen
-                    vision[6] = 0;
-                } else {
-                    vision[6] = 1 / (min - closestDist);
-                }
-            }
-        } else {//if replaying then use local shit
-            float temp = 0;
-            float min = 10000;
-            int minIndex = -1;
-            boolean berd = false;
-            for (int i = 0; i < replayObstacles.size(); i++) {
-                if (replayObstacles.get(i).posX + replayObstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) < min && replayObstacles.get(i).posX + replayObstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) > 0) {//if the distance between the left of the player and the right of the obstacle is the least
-                    min = replayObstacles.get(i).posX + replayObstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2);
-                    minIndex = i;
-                }
-            }
-
-            for (int i = 0; i < replayBirds.size(); i++) {
-                if (replayBirds.get(i).posX + replayBirds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) < min && replayBirds.get(i).posX + replayBirds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) > 0) {//if the distance between the left of the player and the right of the obstacle is the least
-                    min = replayBirds.get(i).posX + replayBirds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2);
-                    minIndex = i;
-                    berd = true;
-                }
-            }
-            vision[4] = localSpeed;
-            vision[5] = posY;
-
-
-            if (minIndex == -1) {//if there are no replayObstacles
-                vision[0] = 0;
-                vision[1] = 0;
-                vision[2] = 0;
-                vision[3] = 0;
-                vision[6] = 0;
-            } else {
-
-                vision[0] = 1.0 / (min / 10.0);
-                if (berd) {
-                    vision[1] = replayBirds.get(minIndex).h;
-                    vision[2] = replayBirds.get(minIndex).w;
-                    if (replayBirds.get(minIndex).typeOfBird == 0) {
-                        vision[3] = 0;
-                    } else {
-                        vision[3] = replayBirds.get(minIndex).posY;
-                    }
-                } else {
-                    vision[1] = replayObstacles.get(minIndex).h;
-                    vision[2] = replayObstacles.get(minIndex).w;
-                    vision[3] = 0;
-                }
-
-
-                //vision 6 is the gap between the this obstacle and the next one
-                int bestIndex = minIndex;
-                float closestDist = min;
-                min = 10000;
-                minIndex = -1;
-                for (int i = 0; i < replayObstacles.size(); i++) {
-                    if ((berd || i != bestIndex) && replayObstacles.get(i).posX + replayObstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) < min && replayObstacles.get(i).posX + replayObstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) > 0) {//if the distance between the left of the player and the right of the obstacle is the least
-                        min = replayObstacles.get(i).posX + replayObstacles.get(i).w / 2 - (playerXpos - dinoRun1.width / 2);
-                        minIndex = i;
-                    }
-                }
-
-                for (int i = 0; i < replayBirds.size(); i++) {
-                    if ((!berd || i != bestIndex) && replayBirds.get(i).posX + replayBirds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) < min && replayBirds.get(i).posX + replayBirds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2) > 0) {//if the distance between the left of the player and the right of the obstacle is the least
-                        min = replayBirds.get(i).posX + replayBirds.get(i).w / 2 - (playerXpos - dinoRun1.width / 2);
-                        minIndex = i;
-                    }
-                }
-
-                if (minIndex == -1) {//if there is only one obejct on the screen
-                    vision[6] = 0;
-                } else {
-                    vision[6] = 1 / (min - closestDist);
-                }
+                vision[6] = 1 / (min - closestDist);
             }
         }
+    }
+
+    /**
+     * Returns true if the distance between the left of the player and the right of the obstacle is the least
+     */
+    private boolean isLeastDistance(Element element, double min)
+    {
+        double distance = calculateDistance(element);
+
+        return distance > 0 && distance < min;
+    }
+
+    private double calculateDistance(Element element)
+    {
+        Image frame = images[DINO_RUN_00];
+        int posX = controller.getPlayerXPos();
+        return element.getPosX() + element.getW() / (double) 2 - (posX - frame.getWidth() / 2);
+    }
+
+    private void emptyVision()
+    {
+        vision[0] = 0;
+        vision[1] = 0;
+        vision[2] = 0;
+        vision[3] = 0;
+        vision[6] = 0;
     }
 
 
@@ -392,24 +413,24 @@ public class Player
         clone.bestScore = score;
         clone.replay = true;
         if (replay) {
-            clone.localObstacleHistory = (ArrayList) localObstacleHistory.clone();
-            clone.localRandomAdditionHistory = (ArrayList) localRandomAdditionHistory.clone();
+            clone.localObstacleHistory = new ArrayList<>(localObstacleHistory);
+            clone.localRandomAdditionHistory = new ArrayList<>(localRandomAdditionHistory);
         } else {
-            clone.localObstacleHistory = (ArrayList) obstacleHistory.clone();
-            clone.localRandomAdditionHistory = (ArrayList) randomAdditionHistory.clone();
+            clone.localObstacleHistory = new ArrayList<>(controller.getObstacleHistory());
+            clone.localRandomAdditionHistory = new ArrayList<>(controller.getRandomAdditionHistory());
         }
 
         return clone;
     }
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------
-    //fot Genetic algorithm
+    /**
+     * Fitness function for Genetic algorithm
+     */
     public void calculateFitness()
     {
         fitness = score * score;
     }
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------
     Player crossover(Player parent2)
     {
         Player child = new Player();
@@ -425,13 +446,14 @@ public class Player
     {
         localObstacleTimer++;
         localSpeed += 0.002;
-        if (localObstacleTimer > minimumTimeBetweenObstacles + localRandomAddition) {
+        if (localObstacleTimer > controller.getMinimumTimeBetweenObstacles() + localRandomAddition) {
             addLocalObstacle();
         }
-        groundCounter++;
-        if (groundCounter > 10) {
-            groundCounter = 0;
-            grounds.add(new Ground());
+
+        controller.increaseGroundCounter();
+        if (controller.getGroundCounter() > 10) {
+            controller.setGroundCounter(0);
+            controller.getGrounds().add(new Ground());
         }
 
         moveLocalObstacles();
@@ -440,31 +462,11 @@ public class Player
 
     public void moveLocalObstacles()
     {
-        for (int i = 0; i < replayObstacles.size(); i++) {
-            replayObstacles.get(i).move(localSpeed);
-            if (replayObstacles.get(i).posX < -100) {
-                replayObstacles.remove(i);
-                i--;
-            }
-        }
-
-        for (int i = 0; i < replayBirds.size(); i++) {
-            replayBirds.get(i).move(localSpeed);
-            if (replayBirds.get(i).posX < -100) {
-                replayBirds.remove(i);
-                i--;
-            }
-        }
-        for (int i = 0; i < grounds.size(); i++) {
-            grounds.get(i).move(localSpeed);
-            if (grounds.get(i).posX < -100) {
-                grounds.remove(i);
-                i--;
-            }
-        }
+        execMove(replayObstacles, localSpeed, -100);
+        execMove(replayBirds, localSpeed, -100);
+        execMove(controller.getGrounds(), localSpeed, -100);
     }
 
-    //------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void addLocalObstacle()
     {
         int tempInt = localObstacleHistory.get(historyCounter);
@@ -478,18 +480,17 @@ public class Player
         localObstacleTimer = 0;
     }
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------
     public void showLocalObstacles()
     {
-        for (int i = 0; i < grounds.size(); i++) {
-            grounds.get(i).show();
-        }
-        for (int i = 0; i < replayObstacles.size(); i++) {
-            replayObstacles.get(i).show();
-        }
+        showRequest(controller.getGrounds());
+        showRequest(replayObstacles);
+        showRequest(replayBirds);
+    }
 
-        for (int i = 0; i < replayBirds.size(); i++) {
-            replayBirds.get(i).show();
+    private void showRequest(List<? extends Element> elements)
+    {
+        for (Element element : elements) {
+            element.show();
         }
     }
 
@@ -498,9 +499,24 @@ public class Player
         this.dead = true;
     }
 
+    public void setFiness(double fitness)
+    {
+        this.fitness = fitness;
+    }
+
     public void setDead(boolean dead)
     {
         this.dead = dead;
+    }
+
+    public void setGen(int gen)
+    {
+        this.gen = gen;
+    }
+
+    public void setScore(int score)
+    {
+        this.score = score;
     }
 
     public Genome getBrain()
@@ -511,6 +527,11 @@ public class Player
     public double getFitness()
     {
         return fitness;
+    }
+
+    public int getScore()
+    {
+        return score;
     }
 
     public boolean isDead()

@@ -1,8 +1,10 @@
 package com.github.teocci.algo.ai.javafx.base.controllers.dino;
 
 import com.github.teocci.algo.ai.javafx.base.connections.ConnectionHistory;
+import com.github.teocci.algo.ai.javafx.base.model.dino.Genome;
 import com.github.teocci.algo.ai.javafx.base.model.dino.Player;
 import com.github.teocci.algo.ai.javafx.base.model.dino.Species;
+import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +16,8 @@ import java.util.List;
  */
 public class Population
 {
+    private static final String TAG = LogHelper.makeLogTag(Genome.class);
+
     private List<Player> players = new ArrayList<>();
 
     private Player bestPlayer; // The best ever player
@@ -45,11 +49,11 @@ public class Population
     {
         populationLife++;
         for (int i = 0; i < players.size(); i++) {
-            if (!players.get(i).dead) {
+            if (!players.get(i).isDead()) {
                 players.get(i).look();//get inputs for brain
                 players.get(i).think();//use outputs from neural network
                 players.get(i).update();//move the player according to the outputs from the neural network
-                if (!showNothing) {
+                if (!MainController.getInstance().isShowNothing()) {
                     players.get(i).show();
                 }
             }
@@ -62,7 +66,7 @@ public class Population
     public boolean done()
     {
         for (int i = 0; i < players.size(); i++) {
-            if (!players.get(i).dead) {
+            if (!players.get(i).isDead()) {
                 return false;
             }
         }
@@ -74,17 +78,17 @@ public class Population
      */
     public void setBestPlayer()
     {
-        Player tempBest = species.get(0).players.get(0);
-        tempBest.gen = gen;
+        Player tempBest = species.get(0).getPlayers().get(0);
+        tempBest.setGen(gen);
 
 
         // If best this gen is better than the global best score then set the global best as the best this gen
 
-        if (tempBest.score > bestScore) {
+        if (tempBest.getScore() > bestScore) {
             genPlayers.add(tempBest.cloneForReplay());
-            println("old best:", bestScore);
-            println("new best:", tempBest.score);
-            bestScore = tempBest.score;
+            LogHelper.e(TAG, "old best:", bestScore);
+            LogHelper.e(TAG, "new best:", tempBest.getScore());
+            bestScore = tempBest.getScore();
             bestPlayer = tempBest.cloneForReplay();
         }
     }
@@ -107,35 +111,46 @@ public class Population
         killBadSpecies();//kill species which are so bad that they cant reproduce
 
 
-        println("generation", gen, "Number of mutations", innovationHistory.size(), "species: " + species.size(), "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        LogHelper.e(TAG,
+                "generation",
+                gen,
+                "Number of mutations",
+                innovationHistory.size(),
+                "species: " + species.size(),
+                "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+        );
 
 
-        float averageSum = getAvgFitnessSum();
+        double averageSum = getAvgFitnessSum();
         List<Player> children = new ArrayList<>();//the next generation
-        println("Species:");
-        for (int j = 0; j < species.size(); j++) {//for each species
 
-            println("best unadjusted fitness:", species.get(j).bestFitness);
-            for (int i = 0; i < species.get(j).players.size(); i++) {
-                print("player " + i, "fitness: " + species.get(j).players.get(i).fitness, "score " + species.get(j).players.get(i).score, ' ');
+        LogHelper.e(TAG, "Species:");
+        for (Species specy : species) {//for each species
+            LogHelper.e(TAG, "best unadjusted fitness:", specy.getBestFitness());
+            for (int i = 0; i < specy.getPlayers().size(); i++) {
+                LogHelper.e(TAG, "player " + i, "fitness: " + specy.getPlayers().get(i).getFitness(), "score " + specy.getPlayers().get(i).getScore(), ' ');
             }
-            println();
-            children.add(species.get(j).champ.clone());//add champion without any mutation
+            LogHelper.e(TAG, "");
+            // Add champion without any mutation
+            children.add(specy.getChamp().clone());
 
-            int NoOfChildren = floor(species.get(j).averageFitness / averageSum * players.size()) - 1;//the number of children this species is allowed, note -1 is because the champ is already added
-            for (int i = 0; i < NoOfChildren; i++) {//get the calculated amount of children from this species
-                children.add(species.get(j).giveMeBaby(innovationHistory));
+            // The number of children this species is allowed, note -1 is because the champ is already added
+            int NoOfChildren = (int) Math.floor(specy.getAverageFitness() / averageSum * players.size()) - 1;
+            for (int i = 0; i < NoOfChildren; i++) {
+                // Get the calculated amount of children from this species
+                children.add(specy.giveMeBaby(innovationHistory));
             }
         }
 
-        while (children.size() < players.size()) {//if not enough babies (due to flooring the number of children to get a whole int)
+        while (children.size() < players.size()) {
+            // If not enough babies (due to flooring the number of children to get a whole int)
             children.add(species.get(0).giveMeBaby(innovationHistory));//get babies from the best species
         }
         players.clear();
-        players = (ArrayList) children.clone(); //set the children as the current population
+        players = new ArrayList<>(children); //set the children as the current population
         gen += 1;
         for (int i = 0; i < players.size(); i++) {//generate networks for each of the children
-            players.get(i).brain.generateNetwork();
+            players.get(i).getBrain().generateNetwork();
         }
 
         populationLife = 0;
@@ -147,19 +162,19 @@ public class Population
     public void categorize()
     {
         for (Species s : species) {//empty species
-            s.players.clear();
+            s.getPlayers().clear();
         }
-        for (int i = 0; i < players.size(); i++) {//for each player
+        for (Player player : players) {//for each player
             boolean speciesFound = false;
             for (Species s : species) {//for each species
-                if (s.sameSpecies(players.get(i).brain)) {//if the player is similar enough to be considered in the same species
-                    s.addToSpecies(players.get(i));//add it to the species
+                if (s.sameSpecies(player.getBrain())) {//if the player is similar enough to be considered in the same species
+                    s.addToSpecies(player);//add it to the species
                     speciesFound = true;
                     break;
                 }
             }
             if (!speciesFound) {//if no species was similar enough then add a new species with this as its champion
-                species.add(new Species(players.get(i)));
+                species.add(new Species(player));
             }
         }
     }
@@ -186,13 +201,13 @@ public class Population
 
         // Sort the species by the fitness of its best player
         // Using selection sort like a loser
-        ArrayList<Species> temp = new ArrayList<Species>();
+        List<Species> temp = new ArrayList<>();
         for (int i = 0; i < species.size(); i++) {
-            float max = 0;
+            double max = 0;
             int maxIndex = 0;
             for (int j = 0; j < species.size(); j++) {
-                if (species.get(j).bestFitness > max) {
-                    max = species.get(j).bestFitness;
+                if (species.get(j).getBestFitness() > max) {
+                    max = species.get(j).getBestFitness();
                     maxIndex = j;
                 }
             }
@@ -200,7 +215,7 @@ public class Population
             species.remove(maxIndex);
             i--;
         }
-        species = (ArrayList) temp.clone();
+        species = new ArrayList<>(temp);
     }
 
     /**
@@ -209,7 +224,7 @@ public class Population
     public void killStaleSpecies()
     {
         for (int i = 2; i < species.size(); i++) {
-            if (species.get(i).staleness >= 15) {
+            if (species.get(i).getStaleness() >= 15) {
                 species.remove(i);
                 i--;
             }
@@ -221,10 +236,10 @@ public class Population
      */
     public void killBadSpecies()
     {
-        float averageSum = getAvgFitnessSum();
+        double averageSum = getAvgFitnessSum();
 
         for (int i = 1; i < species.size(); i++) {
-            if (species.get(i).averageFitness / averageSum * players.size() < 1) {//if wont be given a single child
+            if (species.get(i).getAverageFitness() / averageSum * players.size() < 1) {//if wont be given a single child
                 species.remove(i);//sad
                 i--;
             }
@@ -234,11 +249,11 @@ public class Population
     /**
      * Returns the sum of each species average fitness
      */
-    public float getAvgFitnessSum()
+    public double getAvgFitnessSum()
     {
-        float averageSum = 0;
+        double averageSum = 0;
         for (Species s : species) {
-            averageSum += s.averageFitness;
+            averageSum += s.getAverageFitness();
         }
         return averageSum;
     }

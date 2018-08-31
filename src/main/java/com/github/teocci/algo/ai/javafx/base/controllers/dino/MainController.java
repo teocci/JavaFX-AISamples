@@ -1,13 +1,17 @@
 package com.github.teocci.algo.ai.javafx.base.controllers.dino;
 
 import com.github.teocci.algo.ai.javafx.base.model.dino.Bird;
+import com.github.teocci.algo.ai.javafx.base.model.dino.Genome;
 import com.github.teocci.algo.ai.javafx.base.model.dino.Ground;
 import com.github.teocci.algo.ai.javafx.base.model.dino.Obstacle;
 import com.github.teocci.algo.ai.javafx.base.model.dino.Player;
+import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 import com.github.teocci.algo.ai.javafx.base.utils.Random;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.github.teocci.algo.ai.javafx.base.utils.CommonHelper.execMove;
 
 /**
  * Created by teocci.
@@ -16,6 +20,8 @@ import java.util.List;
  */
 public class MainController
 {
+    private static final String TAG = LogHelper.makeLogTag(Genome.class);
+
     private int nextConnectionNo = 1000;
     private Population population;
     private int frameSpeed = 60;
@@ -27,56 +33,45 @@ public class MainController
 
     boolean showNothing = false;
 
-
-    //images
-    PImage dinoRun1;
-    PImage dinoRun2;
-    PImage dinoJump;
-    PImage dinoDuck;
-    PImage dinoDuck1;
-    PImage smallCactus;
-    PImage manySmallCactus;
-    PImage bigCactus;
-    PImage bird;
-    PImage bird1;
-
-
     private List<Obstacle> obstacles = new ArrayList<>();
     private ArrayList<Bird> birds = new ArrayList<>();
     private ArrayList<Ground> grounds = new ArrayList<>();
 
-
     private int obstacleTimer = 0;
+
     private int minimumTimeBetweenObstacles = 60;
     private int randomAddition = 0;
     private int groundCounter = 0;
-    private float speed = 10;
+    private double speed = 10;
 
     private int groundHeight = 250;
-    private int playerXpos = 150;
+    private int playerXPos = 150;
 
     private List<Integer> obstacleHistory = new ArrayList<>();
     private List<Integer> randomAdditionHistory = new ArrayList<>();
 
+    private static volatile MainController instance;
+    private static Object mutex = new Object();
 
-//--------------------------------------------------------------------------------------------------------------------------------------------------
+    private MainController() {
+    }
+
+    public static MainController getInstance() {
+        MainController result = instance;
+        if (result == null) {
+            synchronized (mutex) {
+                result = instance;
+                if (result == null)
+                    instance = result = new MainController();
+            }
+        }
+        return result;
+    }
 
     void setup()
     {
-
-        frameRate(60);
-        fullScreen();
-        dinoRun1 = loadImage("dinorun0000.png");
-        dinoRun2 = loadImage("dinorun0001.png");
-        dinoJump = loadImage("dinoJump0000.png");
-        dinoDuck = loadImage("dinoduck0000.png");
-        dinoDuck1 = loadImage("dinoduck0001.png");
-
-        smallCactus = loadImage("cactusSmall0000.png");
-        bigCactus = loadImage("cactusBig0000.png");
-        manySmallCactus = loadImage("cactusSmallMany0000.png");
-        bird = loadImage("berd.png");
-        bird1 = loadImage("berd2.png");
+//        frameRate(60);
+//        fullScreen();
 
         population = new Population(500); //<<number of dinosaurs in each generation
     }
@@ -256,7 +251,7 @@ public class MainController
             grounds.add(new Ground());
         }
 
-        moveObstacles();//move everything
+        moveElements();//move everything
         if (!showNothing) {//show everything
             showObstacles();
         }
@@ -265,31 +260,12 @@ public class MainController
     /**
      * Moves obstacles to the left based on the speed of the game
      */
-    void moveObstacles()
+    void moveElements()
     {
-        println(speed);
-        for (int i = 0; i < obstacles.size(); i++) {
-            obstacles.get(i).move(speed);
-            if (obstacles.get(i).posX < -playerXpos) {
-                obstacles.remove(i);
-                i--;
-            }
-        }
-
-        for (int i = 0; i < birds.size(); i++) {
-            birds.get(i).move(speed);
-            if (birds.get(i).posX < -playerXpos) {
-                birds.remove(i);
-                i--;
-            }
-        }
-        for (int i = 0; i < grounds.size(); i++) {
-            grounds.get(i).move(speed);
-            if (grounds.get(i).posX < -playerXpos) {
-                grounds.remove(i);
-                i--;
-            }
-        }
+        LogHelper.e(TAG, "Speed: " + speed);
+        execMove(obstacles, speed, playerXPos);
+        execMove(birds, speed, playerXPos);
+        execMove(grounds, speed, playerXPos);
     }
 
     /**
@@ -344,5 +320,139 @@ public class MainController
         randomAddition = 0;
         groundCounter = 0;
         speed = 10;
+    }
+
+    public void increaseGroundCounter()
+    {
+        groundCounter++;
+    }
+
+    public void increaseNextConnectionNo()
+    {
+        nextConnectionNo++;
+    }
+
+
+
+    public void setNextConnectionNo(int nextConnectionNo)
+    {
+        this.nextConnectionNo = nextConnectionNo;
+    }
+
+    public void setShowNothing(boolean showNothing)
+    {
+        this.showNothing = showNothing;
+    }
+
+    public void setObstacles(List<Obstacle> obstacles)
+    {
+        this.obstacles = obstacles;
+    }
+
+    public void setBirds(ArrayList<Bird> birds)
+    {
+        this.birds = birds;
+    }
+
+    public void setGrounds(ArrayList<Ground> grounds)
+    {
+        this.grounds = grounds;
+    }
+
+    public void setObstacleHistory(List<Integer> obstacleHistory)
+    {
+        this.obstacleHistory = obstacleHistory;
+    }
+
+    public void setRandomAdditionHistory(List<Integer> randomAdditionHistory)
+    {
+        this.randomAdditionHistory = randomAdditionHistory;
+    }
+
+    public void setGroundCounter(int groundCounter)
+    {
+        this.groundCounter = groundCounter;
+    }
+
+
+    public int getNextConnectionNo()
+    {
+        return nextConnectionNo;
+    }
+
+    public List<Obstacle> getObstacles()
+    {
+        return obstacles;
+    }
+
+    public ArrayList<Bird> getBirds()
+    {
+        return birds;
+    }
+
+    public ArrayList<Ground> getGrounds()
+    {
+        return grounds;
+    }
+
+    public List<Integer> getObstacleHistory()
+    {
+        return obstacleHistory;
+    }
+
+    public List<Integer> getRandomAdditionHistory()
+    {
+        return randomAdditionHistory;
+    }
+
+    public int getMinimumTimeBetweenObstacles()
+    {
+        return minimumTimeBetweenObstacles;
+    }
+
+    public int getObstacleTimer()
+    {
+        return obstacleTimer;
+    }
+
+    public int getRandomAddition()
+    {
+        return randomAddition;
+    }
+
+    public int getGroundCounter()
+    {
+        return groundCounter;
+    }
+
+    public double getSpeed()
+    {
+        return speed;
+    }
+
+    public int getGroundHeight()
+    {
+        return groundHeight;
+    }
+
+    public int getPlayerXPos()
+    {
+        return playerXPos;
+    }
+
+    public double getWidth()
+    {
+        return width;
+    }
+
+    public double getHeight()
+    {
+        return height;
+    }
+
+
+    public boolean isShowNothing()
+    {
+        return showNothing;
     }
 }

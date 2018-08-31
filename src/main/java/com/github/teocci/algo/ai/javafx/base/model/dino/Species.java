@@ -1,11 +1,11 @@
 package com.github.teocci.algo.ai.javafx.base.model.dino;
 
 import com.github.teocci.algo.ai.javafx.base.connections.ConnectionHistory;
+import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
+import com.github.teocci.algo.ai.javafx.base.utils.Random;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static jdk.nashorn.internal.objects.NativeMath.random;
 
 /**
  * Created by teocci.
@@ -14,23 +14,26 @@ import static jdk.nashorn.internal.objects.NativeMath.random;
  */
 public class Species
 {
+    private static final String TAG = LogHelper.makeLogTag(Species.class);
+
     // Coefficients for testing compatibility
     private final double EXCESS_COEFFICIENT = 1;
     private final double WEIGHT_DIFF_COEFFICIENT = 0.5;
     private final double COMPATIBILITY_THRESHOLD = 3;
 
     private List<Player> players = new ArrayList<>();
+
     private double bestFitness = 0;
 
     private Player champ;
 
     private double averageFitness = 0;
+
     private int staleness = 0; // How many generations the species has gone without an improvement
 
     private Genome rep;
 
     public Species() {}
-
 
     /**
      * Constructor which takes in the player which belongs to the species
@@ -54,7 +57,7 @@ public class Species
         double averageWeightDiff = averageWeightDiff(g, rep);//get the average weight difference between matching genes
 
 
-        float largeGenomeNormaliser = g.genes.size() - 20;
+        double largeGenomeNormaliser = g.getGenes().size() - 20;
         if (largeGenomeNormaliser < 1) {
             largeGenomeNormaliser = 1;
         }
@@ -79,15 +82,15 @@ public class Species
     public double getExcessDisjoint(Genome brain1, Genome brain2)
     {
         double matching = 0.0;
-        for (int i = 0; i < brain1.genes.size(); i++) {
-            for (int j = 0; j < brain2.genes.size(); j++) {
-                if (brain1.genes.get(i).innovationNo == brain2.genes.get(j).innovationNo) {
+        for (int i = 0; i < brain1.getGenes().size(); i++) {
+            for (int j = 0; j < brain2.getGenes().size(); j++) {
+                if (brain1.getGenes().get(i).getInnovationNo() == brain2.getGenes().get(j).getInnovationNo()) {
                     matching++;
                     break;
                 }
             }
         }
-        return (brain1.genes.size() + brain2.genes.size() - 2 * (matching));//return no of excess and disjoint genes
+        return (brain1.getGenes().size() + brain2.getGenes().size() - 2 * (matching));//return no of excess and disjoint genes
     }
 
     /**
@@ -95,18 +98,17 @@ public class Species
      */
     public double averageWeightDiff(Genome brain1, Genome brain2)
     {
-        if (brain1.genes.size() == 0 || brain2.genes.size() == 0) {
+        if (brain1.getGenes().size() == 0 || brain2.getGenes().size() == 0) {
             return 0;
         }
 
-
         double matching = 0;
         double totalDiff = 0;
-        for (int i = 0; i < brain1.genes.size(); i++) {
-            for (int j = 0; j < brain2.genes.size(); j++) {
-                if (brain1.genes.get(i).innovationNo == brain2.genes.get(j).innovationNo) {
+        for (int i = 0; i < brain1.getGenes().size(); i++) {
+            for (int j = 0; j < brain2.getGenes().size(); j++) {
+                if (brain1.getGenes().get(i).getInnovationNo() == brain2.getGenes().get(j).getInnovationNo()) {
                     matching++;
-                    totalDiff += abs(brain1.genes.get(i).weight - brain2.genes.get(j).weight);
+                    totalDiff += Math.abs(brain1.getGenes().get(i).getWeight() - brain2.getGenes().get(j).getWeight());
                     break;
                 }
             }
@@ -122,16 +124,15 @@ public class Species
      */
     public void sortSpecies()
     {
-
-        List<Player> temp = new ArrayList<Player>();
+        List<Player> temp = new ArrayList<>();
 
         //selection short
         for (int i = 0; i < players.size(); i++) {
-            float max = 0;
+            double max = 0;
             int maxIndex = 0;
             for (int j = 0; j < players.size(); j++) {
-                if (players.get(j).fitness > max) {
-                    max = players.get(j).fitness;
+                if (players.get(j).getFitness() > max) {
+                    max = players.get(j).getFitness();
                     maxIndex = j;
                 }
             }
@@ -140,28 +141,28 @@ public class Species
             i--;
         }
 
-        players = (ArrayList) temp.clone();
+        players = new ArrayList<>(temp);
         if (players.size() == 0) {
-            print("fucking");
+            LogHelper.e(TAG, "fucking");
             staleness = 200;
             return;
         }
         //if new best player
-        if (players.get(0).fitness > bestFitness) {
+        if (players.get(0).getFitness() > bestFitness) {
             staleness = 0;
-            bestFitness = players.get(0).fitness;
-            rep = players.get(0).brain.clone();
+            bestFitness = players.get(0).getFitness();
+            rep = players.get(0).getBrain().clone();
             champ = players.get(0).cloneForReplay();
         } else {//if no new best player
             staleness++;
         }
     }
 
-    public setAverage()
+    public void setAverage()
     {
         double sum = 0;
         for (Player player : players) {
-            sum += player.fitness;
+            sum += player.getFitness();
         }
 
         averageFitness = sum / players.size();
@@ -173,7 +174,7 @@ public class Species
     public Player giveMeBaby(List<ConnectionHistory> innovationHistory)
     {
         Player baby;
-        if (random(1) < 0.25) {//25% of the time there is no crossover and the child is simply a clone of a random(ish) player
+        if (Random.uniform() < 0.25) {//25% of the time there is no crossover and the child is simply a clone of a random(ish) player
             baby = selectPlayer().clone();
         } else {//75% of the time do crossover
 
@@ -182,13 +183,16 @@ public class Species
             Player parent2 = selectPlayer();
 
             //the crossover function expects the highest fitness parent to be the object and the lowest as the argument
-            if (parent1.fitness < parent2.fitness) {
+            if (parent1.getFitness() < parent2.getFitness()) {
                 baby = parent2.crossover(parent1);
             } else {
                 baby = parent1.crossover(parent2);
             }
         }
-        baby.brain.mutate(innovationHistory);//mutate that baby brain
+
+        //mutate that baby brain
+        baby.getBrain().mutate(innovationHistory);
+
         return baby;
     }
 
@@ -197,16 +201,16 @@ public class Species
      */
     public Player selectPlayer()
     {
-        float fitnessSum = 0;
-        for (int i = 0; i < players.size(); i++) {
-            fitnessSum += players.get(i).fitness;
+        double fitnessSum = 0;
+        for (Player player1 : players) {
+            fitnessSum += player1.getFitness();
         }
 
-        double rand = random(fitnessSum);
+        double rand = Random.uniform(0, fitnessSum);
         double runningSum = 0;
 
         for (Player player : players) {
-            runningSum += player.fitness;
+            runningSum += player.getFitness();
             if (runningSum > rand) {
                 return player;
             }
@@ -234,7 +238,44 @@ public class Species
     public void fitnessSharing()
     {
         for (int i = 0; i < players.size(); i++) {
-            players.get(i).fitness /= players.size();
+            double fitness = players.get(i).getFitness();
+            fitness /= players.size();
+            players.get(i).setFiness(fitness);
         }
+    }
+
+    public void setPlayers(List<Player> players)
+    {
+        this.players = players;
+    }
+
+    public void setBestFitness(double bestFitness)
+    {
+        this.bestFitness = bestFitness;
+    }
+
+    public List<Player> getPlayers()
+    {
+        return players;
+    }
+
+    public Player getChamp()
+    {
+        return champ;
+    }
+
+    public double getBestFitness()
+    {
+        return bestFitness;
+    }
+
+    public double getAverageFitness()
+    {
+        return averageFitness;
+    }
+
+    public int getStaleness()
+    {
+        return staleness;
     }
 }
