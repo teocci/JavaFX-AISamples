@@ -65,8 +65,8 @@ public class Population
      */
     public boolean done()
     {
-        for (int i = 0; i < players.size(); i++) {
-            if (!players.get(i).isDead()) {
+        for (Player player : players) {
+            if (!player.isDead()) {
                 return false;
             }
         }
@@ -83,7 +83,6 @@ public class Population
 
 
         // If best this gen is better than the global best score then set the global best as the best this gen
-
         if (tempBest.getScore() > bestScore) {
             genPlayers.add(tempBest.cloneForReplay());
             LogHelper.e(TAG, "old best:", bestScore);
@@ -117,7 +116,7 @@ public class Population
                 "Number of mutations",
                 innovationHistory.size(),
                 "species: " + species.size(),
-                "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+                "<<<<<<<<<<<<<<<<"
         );
 
 

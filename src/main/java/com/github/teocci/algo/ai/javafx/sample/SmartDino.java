@@ -1,5 +1,6 @@
 package com.github.teocci.algo.ai.javafx.sample;
 
+import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
 import com.github.teocci.algo.ai.javafx.base.controllers.dot.GenerationController;
 import com.github.teocci.algo.ai.javafx.base.animators.dot.Animator;
 import javafx.application.Application;
@@ -31,7 +32,7 @@ public class SmartDino extends Application
         BorderPane root = new BorderPane();
         ToolBar toolBar = new ToolBar();
         Pane canvas = new Pane();
-        Scene scene = new Scene(root, 800, 960);
+        Scene scene = new Scene(root, 1280, 720);
         scene.setFill(Color.LIGHTGRAY);
 
         root.setCenter(canvas);
@@ -47,15 +48,17 @@ public class SmartDino extends Application
         Label bestLbl = new Label("Min steps:");
         Label bestValue = new Label("10000");
 
-        generationController = new GenerationController(1000, canvas, genValue, bestValue);
+
+        MainController controller = MainController.getInstance();
+//        generationController = new GenerationController(1000, canvas, genValue, bestValue);
 
         Region region = new Region();
         HBox.setHgrow(region, Priority.ALWAYS);
 
         toolBar.getItems().setAll(genLbl, genValue, region, bestLbl, bestValue);
 
-        animator = new Animator(generationController);
-        animator.start();
+//        animator = new Animator(generationController);
+//        animator.start();
     }
 
     public static void main(String[] args)

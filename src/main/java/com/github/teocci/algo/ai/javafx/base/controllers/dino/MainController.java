@@ -26,7 +26,6 @@ public class MainController
     private Population population;
     private int frameSpeed = 60;
 
-
     private boolean showBestEachGen = false;
     private int upToGen = 0;
     private Player genPlayerTemp;
@@ -47,16 +46,21 @@ public class MainController
     private int groundHeight = 250;
     private int playerXPos = 150;
 
+    private int width = 1280;
+    private int height = 720;
+
     private List<Integer> obstacleHistory = new ArrayList<>();
     private List<Integer> randomAdditionHistory = new ArrayList<>();
 
     private static volatile MainController instance;
     private static Object mutex = new Object();
 
-    private MainController() {
+    private MainController()
+    {
     }
 
-    public static MainController getInstance() {
+    public static MainController getInstance()
+    {
         MainController result = instance;
         if (result == null) {
             synchronized (mutex) {
@@ -109,27 +113,29 @@ public class MainController
     }
 
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------
-//draws the display screen
+    /**
+     * Draws the display screen
+     */
     void drawToScreen()
     {
         if (!showNothing) {
-            background(250);
-            stroke(0);
-            strokeWeight(2);
-            line(0, height - groundHeight - 30, width, height - groundHeight - 30);
+//            background(250);
+//            stroke(0);
+//            strokeWeight(2);
+//            line(0, height - groundHeight - 30, width, height - groundHeight - 30);
             drawBrain();
             writeInfo();
         }
     }
 
-    //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void drawBrain()
-    {  //show the brain of whatever genome is currently showing
+    {
+        // Show the brain of whatever genome is currently showing
         int startX = 600;
         int startY = 10;
         int w = 600;
         int h = 400;
+
         if (showBestEachGen) {
             genPlayerTemp.getBrain().drawGenome(startX, startY, w, h);
         } else {
@@ -142,107 +148,108 @@ public class MainController
         }
     }
 
-    //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//writes info about the current player
+    /**
+     * Writes info about the current player
+     */
     void writeInfo()
     {
-        fill(200);
-        textAlign(LEFT);
-        textSize(40);
+//        fill(200);
+//        textAlign(LEFT);
+//        textSize(40);
         if (showBestEachGen) { //if showing the best for each gen then write the applicable info
-            text("Score: " + genPlayerTemp.score, 30, height - 30);
+//            text("Score: " + genPlayerTemp.score, 30, height - 30);
             //text(, width/2-180, height-30);
-            textAlign(RIGHT);
-            text("Gen: " + (genPlayerTemp.gen + 1), width - 40, height - 30);
-            textSize(20);
+//            textAlign(RIGHT);
+//            text("Gen: " + (genPlayerTemp.gen + 1), width - 40, height - 30);
+//            textSize(20);
             int x = 580;
-            text("Distace to next obstacle", x, 18 + 44.44444);
-            text("Height of obstacle", x, 18 + 2 * 44.44444);
-            text("Width of obstacle", x, 18 + 3 * 44.44444);
-            text("Bird height", x, 18 + 4 * 44.44444);
-            text("Speed", x, 18 + 5 * 44.44444);
-            text("Players Y position", x, 18 + 6 * 44.44444);
-            text("Gap between obstacles", x, 18 + 7 * 44.44444);
-            text("Bias", x, 18 + 8 * 44.44444);
-
-            textAlign(LEFT);
-            text("Small Jump", 1220, 118);
-            text("Big Jump", 1220, 218);
-            text("Duck", 1220, 318);
+//            text("Distace to next obstacle", x, 18 + 44.44444);
+//            text("Height of obstacle", x, 18 + 2 * 44.44444);
+//            text("Width of obstacle", x, 18 + 3 * 44.44444);
+//            text("Bird height", x, 18 + 4 * 44.44444);
+//            text("Speed", x, 18 + 5 * 44.44444);
+//            text("Players Y position", x, 18 + 6 * 44.44444);
+//            text("Gap between obstacles", x, 18 + 7 * 44.44444);
+//            text("Bias", x, 18 + 8 * 44.44444);
+//
+//            textAlign(LEFT);
+//            text("Small Jump", 1220, 118);
+//            text("Big Jump", 1220, 218);
+//            text("Duck", 1220, 318);
         } else { //evolving normally
-            text("Score: " + floor(population.populationLife / 3.0), 30, height - 30);
+//            text("Score: " + floor(population.populationLife / 3.0), 30, height - 30);
             //text(, width/2-180, height-30);
-            textAlign(RIGHT);
-
-            text("Gen: " + (population.gen + 1), width - 40, height - 30);
-            textSize(20);
+//            textAlign(RIGHT);
+//
+//            text("Gen: " + (population.gen + 1), width - 40, height - 30);
+//            textSize(20);
             int x = 580;
-            text("Distace to next obstacle", x, 18 + 44.44444);
-            text("Height of obstacle", x, 18 + 2 * 44.44444);
-            text("Width of obstacle", x, 18 + 3 * 44.44444);
-            text("Bird height", x, 18 + 4 * 44.44444);
-            text("Speed", x, 18 + 5 * 44.44444);
-            text("Players Y position", x, 18 + 6 * 44.44444);
-            text("Gap between obstacles", x, 18 + 7 * 44.44444);
-            text("Bias", x, 18 + 8 * 44.44444);
-
-            textAlign(LEFT);
-            text("Small Jump", 1220, 118);
-            text("Big Jump", 1220, 218);
-            text("Duck", 1220, 318);
+//            text("Distace to next obstacle", x, 18 + 44.44444);
+//            text("Height of obstacle", x, 18 + 2 * 44.44444);
+//            text("Width of obstacle", x, 18 + 3 * 44.44444);
+//            text("Bird height", x, 18 + 4 * 44.44444);
+//            text("Speed", x, 18 + 5 * 44.44444);
+//            text("Players Y position", x, 18 + 6 * 44.44444);
+//            text("Gap between obstacles", x, 18 + 7 * 44.44444);
+//            text("Bias", x, 18 + 8 * 44.44444);
+//
+//            textAlign(LEFT);
+//            text("Small Jump", 1220, 118);
+//            text("Big Jump", 1220, 218);
+//            text("Duck", 1220, 318);
         }
     }
 
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------
 
     void keyPressed()
     {
-        switch (key) {
-            case '+'://speed up frame rate
-                frameSpeed += 10;
-                frameRate(frameSpeed);
-                println(frameSpeed);
-                break;
-            case '-'://slow down frame rate
-                if (frameSpeed > 10) {
-                    frameSpeed -= 10;
-                    frameRate(frameSpeed);
-                    println(frameSpeed);
-                }
-                break;
-            case 'g'://show generations
-                showBestEachGen = !showBestEachGen;
-                upToGen = 0;
-                genPlayerTemp = population.getGenPlayers().get(upToGen).cloneForReplay();
-                break;
-            case 'n'://show absolutely nothing in order to speed up computation
-                showNothing = !showNothing;
-                break;
-            case CODED://any of the arrow keys
-                switch (keyCode) {
-                    case RIGHT://right is used to move through the generations
-                        if (showBestEachGen) {//if showing the best player each generation then move on to the next generation
-                            upToGen++;
-                            if (upToGen >= population.getGenPlayers().size()) {//if reached the current generation then exit out of the showing generations mode
-                                showBestEachGen = false;
-                            } else {
-                                genPlayerTemp = population.getGenPlayers().get(upToGen).cloneForReplay();
-                            }
-                            break;
-                        }
-                        break;
-                }
-        }
+//        switch (key) {
+//            case '+'://speed up frame rate
+//                frameSpeed += 10;
+//                frameRate(frameSpeed);
+//                println(frameSpeed);
+//                break;
+//            case '-'://slow down frame rate
+//                if (frameSpeed > 10) {
+//                    frameSpeed -= 10;
+//                    frameRate(frameSpeed);
+//                    println(frameSpeed);
+//                }
+//                break;
+//            case 'g'://show generations
+//                showBestEachGen = !showBestEachGen;
+//                upToGen = 0;
+//                genPlayerTemp = population.getGenPlayers().get(upToGen).cloneForReplay();
+//                break;
+//            case 'n'://show absolutely nothing in order to speed up computation
+//                showNothing = !showNothing;
+//                break;
+//            case CODED://any of the arrow keys
+//                switch (keyCode) {
+//                    case RIGHT://right is used to move through the generations
+//                        if (showBestEachGen) {//if showing the best player each generation then move on to the next generation
+//                            upToGen++;
+//                            if (upToGen >= population.getGenPlayers().size()) {//if reached the current generation then exit out of the showing generations mode
+//                                showBestEachGen = false;
+//                            } else {
+//                                genPlayerTemp = population.getGenPlayers().get(upToGen).cloneForReplay();
+//                            }
+//                            break;
+//                        }
+//                        break;
+//                }
+//        }
     }
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------
-//called every frame
+    /**
+     * Called every frame
+     */
     void updateObstacles()
     {
         obstacleTimer++;
         speed += 0.002;
-        if (obstacleTimer > minimumTimeBetweenObstacles + randomAddition) { //if the obstacle timer is high enough then add a new obstacle
+        // Whenever a obstacle timer is high enough then add a new obstacle
+        if (obstacleTimer > minimumTimeBetweenObstacles + randomAddition) {
             addObstacle();
         }
         groundCounter++;
@@ -331,7 +338,6 @@ public class MainController
     {
         nextConnectionNo++;
     }
-
 
 
     public void setNextConnectionNo(int nextConnectionNo)

@@ -502,9 +502,9 @@ public class Genome
             allNodes.add(temp);//add this layer to all nodes
         }
 
-        //for each layer add the position of the node on the screen to the node posses arraylist
+        // Add the position of the node on the screen to the node posses ArrayList for each layer
         for (int i = 0; i < layers; i++) {
-            fill(255, 0, 0);
+//            fill(255, 0, 0);
             double x = startX + (double) ((i) * w) / (double) (layers - 1);
             for (int j = 0; j < allNodes.get(i).size(); j++) {//for the position in the layer
                 double y = startY + ((j + 1.0) * h) / (allNodes.get(i).size() + 1.0);
@@ -517,38 +517,38 @@ public class Genome
         }
 
         // Draw connections
-        stroke(0);
-        strokeWeight(2);
+//        stroke(0);
+//        strokeWeight(2);
         for (int i = 0; i < genes.size(); i++) {
             if (genes.get(i).isEnabled()) {
-                stroke(0);
+//                stroke(0);
             } else {
-                stroke(100);
+//                stroke(100);
             }
             Vector2D from;
             Vector2D to;
             from = nodePoses.get(nodeNumbers.indexOf(genes.get(i).getFromNode().getNumber()));
             to = nodePoses.get(nodeNumbers.indexOf(genes.get(i).getToNode().getNumber()));
             if (genes.get(i).getWeight() > 0) {
-                stroke(255, 0, 0);
+//                stroke(255, 0, 0);
             } else {
-                stroke(0, 0, 255);
+//                stroke(0, 0, 255);
             }
-            strokeWeight(map(abs(genes.get(i).getWeight()), 0, 1, 0, 5));
-            line(from.x, from.y, to.x, to.y);
+//            strokeWeight(map(abs(genes.get(i).getWeight()), 0, 1, 0, 5));
+//            line(from.x, from.y, to.x, to.y);
         }
 
         //draw nodes last so they appear on top of the connection lines
         for (int i = 0; i < nodePoses.size(); i++) {
-            fill(255);
-            stroke(0);
-            strokeWeight(1);
-            ellipse(nodePoses.get(i).x, nodePoses.get(i).y, 20, 20);
-            textSize(10);
-            fill(0);
-            textAlign(CENTER, CENTER);
-
-            text(nodeNumbers.get(i), nodePoses.get(i).getX(), nodePoses.get(i).getY());
+//            fill(255);
+//            stroke(0);
+//            strokeWeight(1);
+//            ellipse(nodePoses.get(i).x, nodePoses.get(i).y, 20, 20);
+//            textSize(10);
+//            fill(0);
+//            textAlign(CENTER, CENTER);
+//
+//            text(nodeNumbers.get(i), nodePoses.get(i).getX(), nodePoses.get(i).getY());
         }
     }
 
