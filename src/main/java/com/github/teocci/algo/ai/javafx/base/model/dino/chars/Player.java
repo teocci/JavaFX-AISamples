@@ -1,7 +1,10 @@
-package com.github.teocci.algo.ai.javafx.base.model.dino;
+package com.github.teocci.algo.ai.javafx.base.model.dino.chars;
 
 import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
+import com.github.teocci.algo.ai.javafx.base.model.dino.Element;
+import com.github.teocci.algo.ai.javafx.base.model.dino.Genome;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.Paint;
@@ -76,10 +79,26 @@ public class Player extends Element
     {
         brain = new Genome(genomeInputs, genomeOutputs);
         controller = MainController.getInstance();
+
     }
 
     @Override
-    public void move(double speed) {}
+    public void move(double speed)
+    {
+        posY += velY;
+        if (posY > 0) {
+            velY -= gravity;
+        } else {
+            velY = 0;
+            posY = 0;
+        }
+
+        if (!replay) {
+            globalMove(controller.getObstacles(), controller.getBirds());
+        } else {
+            globalMove(replayObstacles, replayBirds);
+        }
+    }
 
     /**
      * Show the dino
@@ -87,7 +106,10 @@ public class Player extends Element
     @Override
     public void show()
     {
-        setFill(loadImage(getType()));
+//        int index = controller.getView().getCanvas().getChildren().indexOf(this);
+//        controller.getView().getCanvas().getChildren().set(index, this);
+//        Platform.runLater(() -> setFill(loadImage(getType())));
+        updateImage(getType());
         runCount++;
         if (runCount > 5) {
             runCount = -5;
@@ -95,7 +117,7 @@ public class Player extends Element
     }
 
     @Override
-    protected boolean collided(double posX, double v, double v1, double height)
+    public boolean collided(double posX, double v, double v1, double height)
     {
         return false;
     }
@@ -137,19 +159,7 @@ public class Player extends Element
      */
     public void move()
     {
-        posY += velY;
-        if (posY > 0) {
-            velY -= gravity;
-        } else {
-            velY = 0;
-            posY = 0;
-        }
-
-        if (!replay) {
-            globalMove(controller.getObstacles(), controller.getBirds());
-        } else {
-            globalMove(replayObstacles, replayBirds);
-        }
+        move(0);
     }
 
     private int getType()
@@ -171,6 +181,18 @@ public class Player extends Element
         }
     }
 
+    private void updateImage(int type)
+    {
+        Image image = images[type];
+        int posX = controller.getPlayerXPos();
+        double height = controller.getHeight();
+        int groundHeight = controller.getGroundHeight();
+
+        // Draw next image
+        GraphicsContext gc = MainController.getInstance().getView().getGc();
+        gc.drawImage(image, posX - image.getWidth() / 2, height - groundHeight - (posY + image.getHeight()));
+    }
+
     private Paint loadImage(int type)
     {
         Image image = images[type];
@@ -186,6 +208,7 @@ public class Player extends Element
         for (Obstacle obstacle : obstacles) {
             calculateCollision(obstacle, images[DINO_RUN_00]);
         }
+
         for (Bird bird : birds) {
             if (duck && posY == 0) {
                 calculateCollision(bird, images[DINO_DUCK_00]);
@@ -431,7 +454,7 @@ public class Player extends Element
         fitness = score * score;
     }
 
-    Player crossover(Player parent2)
+    public Player crossover(Player parent2)
     {
         Player child = new Player();
         child.brain = brain.crossover(parent2.brain);
@@ -519,6 +542,7 @@ public class Player extends Element
         this.score = score;
     }
 
+
     public Genome getBrain()
     {
         return brain;
@@ -533,6 +557,12 @@ public class Player extends Element
     {
         return score;
     }
+
+    public int getGen()
+    {
+        return gen;
+    }
+
 
     public boolean isDead()
     {

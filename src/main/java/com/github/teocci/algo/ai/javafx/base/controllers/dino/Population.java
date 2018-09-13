@@ -2,7 +2,7 @@ package com.github.teocci.algo.ai.javafx.base.controllers.dino;
 
 import com.github.teocci.algo.ai.javafx.base.connections.ConnectionHistory;
 import com.github.teocci.algo.ai.javafx.base.model.dino.Genome;
-import com.github.teocci.algo.ai.javafx.base.model.dino.Player;
+import com.github.teocci.algo.ai.javafx.base.model.dino.chars.Player;
 import com.github.teocci.algo.ai.javafx.base.model.dino.Species;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 
@@ -30,14 +30,16 @@ public class Population
 
     private boolean massExtinctionEvent = false;
     private boolean newStage = false;
+
     private int populationLife = 0;
 
     public Population(int size)
     {
         for (int i = 0; i < size; i++) {
-            players.add(new Player());
-            players.get(i).getBrain().generateNetwork();
-            players.get(i).getBrain().mutate(innovationHistory);
+            Player player = new Player();
+            players.add(player);
+            player.getBrain().generateNetwork();
+            player.getBrain().mutate(innovationHistory);
         }
     }
 
@@ -48,13 +50,13 @@ public class Population
     public void updateAlive()
     {
         populationLife++;
-        for (int i = 0; i < players.size(); i++) {
-            if (!players.get(i).isDead()) {
-                players.get(i).look();//get inputs for brain
-                players.get(i).think();//use outputs from neural network
-                players.get(i).update();//move the player according to the outputs from the neural network
+        for (Player player : players) {
+            if (!player.isDead()) {
+                player.look();//get inputs for brain
+                player.think();//use outputs from neural network
+                player.update();//move the player according to the outputs from the neural network
                 if (!MainController.getInstance().isShowNothing()) {
-                    players.get(i).show();
+                    player.show();
                 }
             }
         }
@@ -97,7 +99,7 @@ public class Population
      */
     public void naturalSelection()
     {
-        categorize();//seperate the population into species
+        categorize();//separate the population into species
         calculateFitness();//calculate the fitness of each player
         sortSpecies();//sort the species to be ranked in fitness order, best first
         if (massExtinctionEvent) {
@@ -145,11 +147,13 @@ public class Population
             // If not enough babies (due to flooring the number of children to get a whole int)
             children.add(species.get(0).giveMeBaby(innovationHistory));//get babies from the best species
         }
+
         players.clear();
         players = new ArrayList<>(children); //set the children as the current population
         gen += 1;
-        for (int i = 0; i < players.size(); i++) {//generate networks for each of the children
-            players.get(i).getBrain().generateNetwork();
+
+        for (Player player : players) {//generate networks for each of the children
+            player.getBrain().generateNetwork();
         }
 
         populationLife = 0;

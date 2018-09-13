@@ -1,6 +1,6 @@
 package com.github.teocci.algo.ai.javafx.sample;
 
-import com.github.teocci.algo.ai.javafx.base.animators.dot.Animator;
+import com.github.teocci.algo.ai.javafx.base.animators.dot.DotAnimator;
 import com.github.teocci.algo.ai.javafx.base.controllers.dot.GenerationController;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -23,7 +23,7 @@ public class AISmartDots extends Application
 {
     private GenerationController generationController;
 
-    private Animator animator;
+    private DotAnimator dotAnimator;
 
     @Override
     public void start(Stage stage)
@@ -55,8 +55,8 @@ public class AISmartDots extends Application
 
         toolBar.getItems().setAll(genLbl, genValue, region, bestLbl, bestValue);
 
-        animator = new Animator(generationController);
-        animator.start();
+        dotAnimator = new DotAnimator(generationController);
+        dotAnimator.start();
     }
 
     public static void main(String[] args)

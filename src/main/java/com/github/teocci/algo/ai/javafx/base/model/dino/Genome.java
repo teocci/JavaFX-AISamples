@@ -525,10 +525,9 @@ public class Genome
             } else {
 //                stroke(100);
             }
-            Vector2D from;
-            Vector2D to;
-            from = nodePoses.get(nodeNumbers.indexOf(genes.get(i).getFromNode().getNumber()));
-            to = nodePoses.get(nodeNumbers.indexOf(genes.get(i).getToNode().getNumber()));
+            Vector2D from = nodePoses.get(nodeNumbers.indexOf(genes.get(i).getFromNode().getNumber()));
+            Vector2D to = nodePoses.get(nodeNumbers.indexOf(genes.get(i).getToNode().getNumber()));
+
             if (genes.get(i).getWeight() > 0) {
 //                stroke(255, 0, 0);
             } else {
@@ -538,7 +537,7 @@ public class Genome
 //            line(from.x, from.y, to.x, to.y);
         }
 
-        //draw nodes last so they appear on top of the connection lines
+        // Draw nodes last so they appear on top of the connection lines
         for (int i = 0; i < nodePoses.size(); i++) {
 //            fill(255);
 //            stroke(0);

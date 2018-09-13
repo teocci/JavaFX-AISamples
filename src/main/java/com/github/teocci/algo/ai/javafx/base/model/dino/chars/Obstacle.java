@@ -1,7 +1,9 @@
-package com.github.teocci.algo.ai.javafx.base.model.dino;
+package com.github.teocci.algo.ai.javafx.base.model.dino.chars;
 
 import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
+import com.github.teocci.algo.ai.javafx.base.model.dino.Element;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.Paint;
@@ -68,8 +70,8 @@ public class Obstacle extends Element
     {
 //        fill(0);
 //        rectMode(CENTER);
-
-        setFill(loadImage(type));
+//        setFill(loadImage(type));
+        updateImage(type);
     }
 
     /**
@@ -115,11 +117,23 @@ public class Obstacle extends Element
         return h;
     }
 
+    private void updateImage(int type)
+    {
+        Image image = images[type];
+        int groundHeight = MainController.getInstance().getGroundHeight();
+        double height = MainController.getInstance().getHeight();
+
+        // Draw next image
+        GraphicsContext gc = MainController.getInstance().getView().getGc();
+        gc.drawImage(image, posX - image.getWidth() / 2, height - groundHeight - image.getHeight());
+    }
+
     private Paint loadImage(int type)
     {
         Image image = images[type];
         int groundHeight = MainController.getInstance().getGroundHeight();
         double height = MainController.getInstance().getHeight();
+
         return new ImagePattern(image, 0, 0, posX - image.getWidth() / 2, height - groundHeight - image.getHeight(), true);
     }
 }

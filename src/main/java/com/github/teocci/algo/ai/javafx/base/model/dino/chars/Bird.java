@@ -1,7 +1,10 @@
-package com.github.teocci.algo.ai.javafx.base.model.dino;
+package com.github.teocci.algo.ai.javafx.base.model.dino.chars;
 
 import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
+import com.github.teocci.algo.ai.javafx.base.model.dino.Element;
+import com.github.teocci.algo.ai.javafx.base.model.dino.Genome;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.Paint;
@@ -73,9 +76,10 @@ public class Bird extends Element
 
         // Flap the bird
         if (flapCount < 0) {
-            setFill(loadImage(0));
+//            setFill(loadImage(0));
+            updateImage(0);
         } else {
-            setFill(new ImagePattern(images[1], 0, 0, posX - images[1].getWidth() / 2, height - groundHeight - (posY + images[1].getHeight() - 20), true));
+            updateImage(1);
         }
 
         if (flapCount > 15) {
@@ -128,6 +132,17 @@ public class Bird extends Element
     public int getH()
     {
         return h;
+    }
+
+    private void updateImage(int type)
+    {
+        Image image = images[type];
+        int groundHeight = MainController.getInstance().getGroundHeight();
+        double height = MainController.getInstance().getHeight();
+
+        // Draw next image
+        GraphicsContext gc = MainController.getInstance().getView().getGc();
+        gc.drawImage(image, posX - image.getWidth() / 2, height - groundHeight - (posY + image.getHeight() - 20));
     }
 
     private Paint loadImage(int type)

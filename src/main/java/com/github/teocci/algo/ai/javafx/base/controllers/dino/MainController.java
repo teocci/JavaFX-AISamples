@@ -1,12 +1,15 @@
 package com.github.teocci.algo.ai.javafx.base.controllers.dino;
 
-import com.github.teocci.algo.ai.javafx.base.model.dino.Bird;
-import com.github.teocci.algo.ai.javafx.base.model.dino.Genome;
-import com.github.teocci.algo.ai.javafx.base.model.dino.Ground;
-import com.github.teocci.algo.ai.javafx.base.model.dino.Obstacle;
-import com.github.teocci.algo.ai.javafx.base.model.dino.Player;
+import com.github.teocci.algo.ai.javafx.base.model.dino.chars.Bird;
+import com.github.teocci.algo.ai.javafx.base.model.dino.chars.Ground;
+import com.github.teocci.algo.ai.javafx.base.model.dino.chars.Obstacle;
+import com.github.teocci.algo.ai.javafx.base.model.dino.chars.Player;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 import com.github.teocci.algo.ai.javafx.base.utils.Random;
+import com.github.teocci.algo.ai.javafx.base.views.MainView;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +23,12 @@ import static com.github.teocci.algo.ai.javafx.base.utils.CommonHelper.execMove;
  */
 public class MainController
 {
-    private static final String TAG = LogHelper.makeLogTag(Genome.class);
+    private static final String TAG = LogHelper.makeLogTag(MainController.class);
+
+    private static volatile MainController instance;
+    private static final Object mutex = new Object();
+
+    private MainView view;
 
     private int nextConnectionNo = 1000;
     private Population population;
@@ -28,6 +36,7 @@ public class MainController
 
     private boolean showBestEachGen = false;
     private int upToGen = 0;
+
     private Player genPlayerTemp;
 
     boolean showNothing = false;
@@ -52,27 +61,18 @@ public class MainController
     private List<Integer> obstacleHistory = new ArrayList<>();
     private List<Integer> randomAdditionHistory = new ArrayList<>();
 
-    private static volatile MainController instance;
-    private static Object mutex = new Object();
-
-    private MainController()
+    private MainController(Stage stage)
     {
-    }
-
-    public static MainController getInstance()
-    {
-        MainController result = instance;
-        if (result == null) {
-            synchronized (mutex) {
-                result = instance;
-                if (result == null)
-                    instance = result = new MainController();
-            }
+        if (stage != null) {
+            view = new MainView(this, stage);
         }
-        return result;
+
+        init();
     }
 
-    void setup()
+    private void init() {}
+
+    public void setup()
     {
 //        frameRate(60);
 //        fullScreen();
@@ -80,9 +80,9 @@ public class MainController
         population = new Population(500); //<<number of dinosaurs in each generation
     }
 
-    //--------------------------------------------------------------------------------------------------------------------------------------------------------
-    void draw()
+    public void draw()
     {
+        view.clear();
         drawToScreen();
         if (showBestEachGen) {//show the best of each gen
             if (!genPlayerTemp.isDead()) {//if current gen player is not dead then update it
@@ -116,19 +116,31 @@ public class MainController
     /**
      * Draws the display screen
      */
-    void drawToScreen()
+    private void drawToScreen()
     {
         if (!showNothing) {
 //            background(250);
 //            stroke(0);
 //            strokeWeight(2);
 //            line(0, height - groundHeight - 30, width, height - groundHeight - 30);
+//            view.drawLine(0, height - groundHeight - 30, width, height - groundHeight - 30);
+
+
+            GraphicsContext gc = view.getGc();
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+            gc.strokeLine(0, height - groundHeight - 30, width, height - groundHeight - 30);
+
+
+
+            LogHelper.e(TAG, "(posY) -> (" + (height - groundHeight - 30) + ')');
+
             drawBrain();
             writeInfo();
         }
     }
 
-    void drawBrain()
+    private void drawBrain()
     {
         // Show the brain of whatever genome is currently showing
         int startX = 600;
@@ -151,19 +163,21 @@ public class MainController
     /**
      * Writes info about the current player
      */
-    void writeInfo()
+    private void writeInfo()
     {
 //        fill(200);
 //        textAlign(LEFT);
 //        textSize(40);
         if (showBestEachGen) { //if showing the best for each gen then write the applicable info
+            view.setScoreValue(genPlayerTemp.getScore());
+            view.setGenValue(genPlayerTemp.getGen());
 //            text("Score: " + genPlayerTemp.score, 30, height - 30);
             //text(, width/2-180, height-30);
 //            textAlign(RIGHT);
 //            text("Gen: " + (genPlayerTemp.gen + 1), width - 40, height - 30);
 //            textSize(20);
             int x = 580;
-//            text("Distace to next obstacle", x, 18 + 44.44444);
+//            text("Distance to next obstacle", x, 18 + 44.44444);
 //            text("Height of obstacle", x, 18 + 2 * 44.44444);
 //            text("Width of obstacle", x, 18 + 3 * 44.44444);
 //            text("Bird height", x, 18 + 4 * 44.44444);
@@ -177,6 +191,8 @@ public class MainController
 //            text("Big Jump", 1220, 218);
 //            text("Duck", 1220, 318);
         } else { //evolving normally
+            view.setScoreValue((int) Math.floor(population.getPopulationLife() / 3.0));
+            view.setGenValue(population.getGen() + 1);
 //            text("Score: " + floor(population.populationLife / 3.0), 30, height - 30);
             //text(, width/2-180, height-30);
 //            textAlign(RIGHT);
@@ -184,7 +200,7 @@ public class MainController
 //            text("Gen: " + (population.gen + 1), width - 40, height - 30);
 //            textSize(20);
             int x = 580;
-//            text("Distace to next obstacle", x, 18 + 44.44444);
+//            text("Distance to next obstacle", x, 18 + 44.44444);
 //            text("Height of obstacle", x, 18 + 2 * 44.44444);
 //            text("Width of obstacle", x, 18 + 3 * 44.44444);
 //            text("Bird height", x, 18 + 4 * 44.44444);
@@ -244,7 +260,7 @@ public class MainController
     /**
      * Called every frame
      */
-    void updateObstacles()
+    private void updateObstacles()
     {
         obstacleTimer++;
         speed += 0.002;
@@ -265,57 +281,9 @@ public class MainController
     }
 
     /**
-     * Moves obstacles to the left based on the speed of the game
-     */
-    void moveElements()
-    {
-        LogHelper.e(TAG, "Speed: " + speed);
-        execMove(obstacles, speed, playerXPos);
-        execMove(birds, speed, playerXPos);
-        execMove(grounds, speed, playerXPos);
-    }
-
-    /**
-     * Every so often add an obstacle
-     */
-    void addObstacle()
-    {
-        int lifespan = population.getPopulationLife();
-
-        int tempInt = Random.uniform(3);
-        if (lifespan > 1000 && Random.uniform() < 0.15) { // 15% of the time add a bird
-            Bird temp = new Bird(tempInt);//floor(random(3)));
-            birds.add(temp);
-        } else {//otherwise add a cactus
-            Obstacle temp = new Obstacle(tempInt);//floor(random(3)));
-            obstacles.add(temp);
-            tempInt += 3;
-        }
-        obstacleHistory.add(tempInt);
-
-        randomAddition = Random.uniform(50);
-        randomAdditionHistory.add(randomAddition);
-        obstacleTimer = 0;
-    }
-
-    public void showObstacles()
-    {
-        for (Ground ground : grounds) {
-            ground.show();
-        }
-        for (Obstacle obstacle : obstacles) {
-            obstacle.show();
-        }
-
-        for (Bird bird2 : birds) {
-            bird2.show();
-        }
-    }
-
-    /**
      * Resets all the obstacles after every dino has died
      */
-    void resetObstacles()
+    private void resetObstacles()
     {
         randomAdditionHistory = new ArrayList<>();
         obstacleHistory = new ArrayList<>();
@@ -327,6 +295,58 @@ public class MainController
         randomAddition = 0;
         groundCounter = 0;
         speed = 10;
+    }
+
+    /**
+     * Every so often add an obstacle
+     */
+    private void addObstacle()
+    {
+        int lifespan = population.getPopulationLife();
+
+        int tempInt = Random.uniform(3);
+        if (lifespan > 1000 && Random.uniform() < 0.15) {
+            // 15% of the time add a bird
+            Bird temp = new Bird(tempInt);//floor(random(3)));
+            birds.add(temp);
+        } else {
+            //otherwise add a cactus
+            Obstacle temp = new Obstacle(tempInt);//floor(random(3)));
+            obstacles.add(temp);
+            tempInt += 3;
+        }
+
+        obstacleHistory.add(tempInt);
+
+        randomAddition = Random.uniform(50);
+        randomAdditionHistory.add(randomAddition);
+        obstacleTimer = 0;
+    }
+
+    /**
+     * Moves obstacles to the left based on the speed of the game
+     */
+    private void moveElements()
+    {
+        LogHelper.e(TAG, "Speed: " + speed);
+        execMove(obstacles, speed, playerXPos);
+        execMove(birds, speed, playerXPos);
+        execMove(grounds, speed, playerXPos);
+    }
+
+    private void showObstacles()
+    {
+        for (Ground ground : grounds) {
+            ground.show();
+        }
+
+        for (Obstacle obstacle : obstacles) {
+            obstacle.show();
+        }
+
+        for (Bird bird2 : birds) {
+            bird2.show();
+        }
     }
 
     public void increaseGroundCounter()
@@ -380,6 +400,26 @@ public class MainController
         this.groundCounter = groundCounter;
     }
 
+
+    public static MainController getInstance()
+    {
+        return getInstance(null);
+    }
+
+    public static MainController getInstance(Stage stage)
+    {
+        MainController result = instance;
+        if (result == null) {
+            synchronized (mutex) {
+                result = instance;
+                if (result == null) {
+                    instance = result = new MainController(stage);
+                }
+            }
+        }
+
+        return result;
+    }
 
     public int getNextConnectionNo()
     {
@@ -454,6 +494,11 @@ public class MainController
     public double getHeight()
     {
         return height;
+    }
+
+    public MainView getView()
+    {
+        return view;
     }
 
 

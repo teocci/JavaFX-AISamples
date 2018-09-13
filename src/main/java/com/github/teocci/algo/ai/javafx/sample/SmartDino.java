@@ -1,18 +1,9 @@
 package com.github.teocci.algo.ai.javafx.sample;
 
+import com.github.teocci.algo.ai.javafx.base.animators.dino.DinoAnimator;
+import com.github.teocci.algo.ai.javafx.base.animators.dot.DotAnimator;
 import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
-import com.github.teocci.algo.ai.javafx.base.controllers.dot.GenerationController;
-import com.github.teocci.algo.ai.javafx.base.animators.dot.Animator;
 import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.ToolBar;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /**
@@ -22,43 +13,17 @@ import javafx.stage.Stage;
  */
 public class SmartDino extends Application
 {
-    private GenerationController generationController;
-
-    private Animator animator;
+    private DinoAnimator animator;
 
     @Override
     public void start(Stage stage)
     {
-        BorderPane root = new BorderPane();
-        ToolBar toolBar = new ToolBar();
-        Pane canvas = new Pane();
-        Scene scene = new Scene(root, 1280, 720);
-        scene.setFill(Color.LIGHTGRAY);
-
-        root.setCenter(canvas);
-        root.setBottom(toolBar);
-
-        stage.setTitle("Smart Dino");
-        stage.setScene(scene);
-        stage.setResizable(false);
-        stage.show();
-
-        Label genLbl = new Label("Generation:");
-        Label genValue = new Label("0");
-        Label bestLbl = new Label("Min steps:");
-        Label bestValue = new Label("10000");
-
-
-        MainController controller = MainController.getInstance();
+        MainController controller = MainController.getInstance(stage);
+        controller.setup();
 //        generationController = new GenerationController(1000, canvas, genValue, bestValue);
 
-        Region region = new Region();
-        HBox.setHgrow(region, Priority.ALWAYS);
-
-        toolBar.getItems().setAll(genLbl, genValue, region, bestLbl, bestValue);
-
-//        animator = new Animator(generationController);
-//        animator.start();
+        animator = new DinoAnimator(controller);
+        animator.start();
     }
 
     public static void main(String[] args)

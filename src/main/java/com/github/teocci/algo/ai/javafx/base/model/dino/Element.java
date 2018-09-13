@@ -13,7 +13,7 @@ public abstract class Element extends Rectangle
 
     public abstract void show();
 
-    protected abstract boolean collided(double posX, double v, double v1, double height);
+    public abstract boolean collided(double posX, double v, double v1, double height);
 
     public abstract double getPosX();
     public abstract double getPosY();

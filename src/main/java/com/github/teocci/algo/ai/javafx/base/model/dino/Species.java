@@ -1,6 +1,7 @@
 package com.github.teocci.algo.ai.javafx.base.model.dino;
 
 import com.github.teocci.algo.ai.javafx.base.connections.ConnectionHistory;
+import com.github.teocci.algo.ai.javafx.base.model.dino.chars.Player;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 import com.github.teocci.algo.ai.javafx.base.utils.Random;
 
