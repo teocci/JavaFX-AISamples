@@ -17,7 +17,7 @@ public class Obstacle
 
     private int width, height;
 
-    private Color color = Color.BLACK;
+    private Color color = Color.web("#565656");
 
     public Obstacle(Vector2D pos, int width, int height)
     {

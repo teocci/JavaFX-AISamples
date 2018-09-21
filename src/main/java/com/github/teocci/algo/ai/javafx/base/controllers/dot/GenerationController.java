@@ -10,7 +10,6 @@ import com.github.teocci.algo.ai.javafx.base.views.dot.MainView;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
 import static com.github.teocci.algo.ai.javafx.base.model.dot.Dot.BASE_RADIUS;

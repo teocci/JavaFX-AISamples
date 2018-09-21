@@ -51,6 +51,22 @@ public class MainView
         stage.setResizable(false);
         stage.show();
 
+        initCanvas();
+        initToolBar();
+    }
+
+    private void initCanvas()
+    {
+        canvas.widthProperty().bind(root.widthProperty());
+        canvas.heightProperty().bind(root.heightProperty().subtract(toolBar.heightProperty()));
+
+        LogHelper.e("canvas(w, h) -> (" + canvas.getWidth() + ", " + canvas.getHeight() + ')');
+
+        gc = canvas.getGraphicsContext2D();
+    }
+
+    private void initToolBar()
+    {
         Label scoreLbl = new Label("Score:");
         Label genLbl = new Label("Generation:");
 
@@ -58,13 +74,6 @@ public class MainView
         HBox.setHgrow(region, Priority.ALWAYS);
 
         toolBar.getItems().setAll(scoreLbl, scoreValue, region, genLbl, genValue);
-
-        canvas.widthProperty().bind(root.widthProperty());
-        canvas.heightProperty().bind(root.heightProperty().subtract(toolBar.heightProperty()));
-
-        LogHelper.e("canvas(w, h) -> (" + canvas.getWidth() + ", " + canvas.getHeight() + ')');
-
-        gc = canvas.getGraphicsContext2D();
     }
 
     public void drawLine(double x, double y, double endX, double endY)
