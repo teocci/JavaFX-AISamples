@@ -1,13 +1,11 @@
 package com.github.teocci.algo.ai.javafx.base.model.dino;
 
-import javafx.scene.shape.Rectangle;
-
 /**
  * Created by teocci.
  *
  * @author teocci@yandex.com on 2018-Aug-31
  */
-public abstract class Element extends Rectangle
+public abstract class Element
 {
     public abstract void move(double speed);
 

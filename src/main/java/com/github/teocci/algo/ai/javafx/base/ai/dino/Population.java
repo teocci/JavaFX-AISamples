@@ -1,6 +1,7 @@
-package com.github.teocci.algo.ai.javafx.base.controllers.dino;
+package com.github.teocci.algo.ai.javafx.base.ai.dino;
 
 import com.github.teocci.algo.ai.javafx.base.connections.ConnectionHistory;
+import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
 import com.github.teocci.algo.ai.javafx.base.model.dino.Genome;
 import com.github.teocci.algo.ai.javafx.base.model.dino.chars.Player;
 import com.github.teocci.algo.ai.javafx.base.model.dino.Species;

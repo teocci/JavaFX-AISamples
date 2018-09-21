@@ -2,7 +2,6 @@ package com.github.teocci.algo.ai.javafx.base.animators.dino;
 
 import com.github.teocci.algo.ai.javafx.base.animators.Animator;
 import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
-import com.github.teocci.algo.ai.javafx.base.controllers.dot.GenerationController;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 
 /**

@@ -1,7 +1,6 @@
 package com.github.teocci.algo.ai.javafx.sample;
 
 import com.github.teocci.algo.ai.javafx.base.animators.dino.DinoAnimator;
-import com.github.teocci.algo.ai.javafx.base.animators.dot.DotAnimator;
 import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
 import javafx.application.Application;
 import javafx.stage.Stage;

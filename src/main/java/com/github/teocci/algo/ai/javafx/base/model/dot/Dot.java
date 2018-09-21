@@ -1,6 +1,7 @@
 package com.github.teocci.algo.ai.javafx.base.model.dot;
 
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
@@ -16,13 +17,15 @@ public class Dot
     private static final int BASE_INSTRUCTIONS = 1000;
     public static final int BASE_RADIUS = 4;
 
-    private Circle dot;
+//    private Circle dot;
 
     private Vector2D pos;
     private Vector2D vel;
     private Vector2D acc;
 
     private DNA dna;
+
+    private Color color = Color.BLACK;
 
     private boolean dead = false;
     private boolean reachedGoal = false;
@@ -31,6 +34,7 @@ public class Dot
     private double fitness;
 
     private int width, height;
+    private double radius;
 
     public Dot()
     {
@@ -46,9 +50,7 @@ public class Dot
         vel = new Vector2D(0, 0);
         acc = new Vector2D(0, 0);
 
-        dot = new Circle(BASE_RADIUS, Color.BLACK);
-        dot.setTranslateX(pos.getX());
-        dot.setTranslateY(pos.getY());
+        radius = BASE_RADIUS;
     }
 
     /**
@@ -74,30 +76,25 @@ public class Dot
         // Apply the acceleration and move the dot
         vel = vel.plus(acc);
         pos = pos.plus(vel);
-
-        dot.translateXProperty().set(pos.getX() > width ? width : pos.getX());
-        dot.translateYProperty().set(pos.getY() > height ? height : pos.getY());
     }
 
-    public void update(Dot goal, int width, int height)
+    public void update(Dot goal, Obstacle[] obstacles, int width, int height)
     {
         if (!dead && !reachedGoal) {
             setBounds(width, height);
             move();
-            collisions(goal);
+            collisions(goal, obstacles);
         }
     }
 
-    private void collisions(Dot goal)
+    private void collisions(Dot goal, Obstacle[] obstacles)
     {
         // If near the edges of the window then kill it
-        if (checkIfDead()) {
+        if (checkIfDead() || checkIfObstacle(obstacles)) {
             die();
         } else if (checkIfGoal(goal)) {
             // If reached goal
             gotGoal();
-        } else if (pos.getX() < 600 && pos.getY() < 380 && pos.getX() > 0 && pos.getY() > 300) {//if hit obstacle
-            die();
         }
     }
 
@@ -107,10 +104,27 @@ public class Dot
         return pos.getX() < radius || pos.getY() < radius || pos.getX() > width - radius || pos.getY() > height - radius;
     }
 
+    private boolean checkIfObstacle(Obstacle[] obstacles)
+    {
+        for (Obstacle obstacle : obstacles) {
+            if (obstacle.collided(this)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private boolean checkIfGoal(Dot goal)
     {
         double radius = getRadius();
         return pos.distanceTo(goal.getPos()) < goal.getRadius() - radius;
+    }
+
+    public void show(GraphicsContext gc)
+    {
+        gc.setFill(color);
+        gc.fillOval(pos.getX(), pos.getY(), radius * 2, radius * 2);
     }
 
     public void calculateFitness(Vector2D goal)
@@ -136,19 +150,19 @@ public class Dot
     public void die()
     {
         dead = true;
-        dot.setFill(Color.ORANGERED);
+        color = Color.ORANGERED;
     }
 
     public void best()
     {
         best = true;
-        dot.setFill(Color.LIGHTGREEN);
+        color = Color.LIGHTGREEN;
     }
 
     public void gotGoal()
     {
         reachedGoal = true;
-        dot.setFill(Color.MAGENTA);
+        color = Color.MAGENTA;
     }
 
 
@@ -161,18 +175,16 @@ public class Dot
     public void setPos(int x, int y)
     {
         pos = new Vector2D(x, y);
-        dot.layoutXProperty().set(pos.getX());
-        dot.layoutXProperty().set(pos.getY());
     }
 
     public void setColor(Color color)
     {
-        dot.setFill(color);
+        this.color = color;
     }
 
     public void setRadius(double radius)
     {
-        dot.setRadius(radius);
+        this.radius = radius;
     }
 
 
@@ -181,19 +193,19 @@ public class Dot
         return pos;
     }
 
-    public void setDot(Circle dot)
+    public double getX()
     {
-        this.dot = dot;
+        return pos.getX();
     }
 
-    public Circle getDot()
+    public double getY()
     {
-        return dot;
+        return pos.getY();
     }
 
-    private double getRadius()
+    public double getRadius()
     {
-        return dot.getRadius();
+        return radius;
     }
 
     public DNA getDna()

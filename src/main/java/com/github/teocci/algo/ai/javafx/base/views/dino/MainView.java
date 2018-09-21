@@ -1,4 +1,4 @@
-package com.github.teocci.algo.ai.javafx.base.views;
+package com.github.teocci.algo.ai.javafx.base.views.dino;
 
 import com.github.teocci.algo.ai.javafx.base.controllers.dino.MainController;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
@@ -9,11 +9,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 
 /**

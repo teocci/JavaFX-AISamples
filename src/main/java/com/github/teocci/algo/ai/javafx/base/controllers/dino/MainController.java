@@ -1,12 +1,13 @@
 package com.github.teocci.algo.ai.javafx.base.controllers.dino;
 
+import com.github.teocci.algo.ai.javafx.base.ai.dino.Population;
 import com.github.teocci.algo.ai.javafx.base.model.dino.chars.Bird;
 import com.github.teocci.algo.ai.javafx.base.model.dino.chars.Ground;
 import com.github.teocci.algo.ai.javafx.base.model.dino.chars.Obstacle;
 import com.github.teocci.algo.ai.javafx.base.model.dino.chars.Player;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 import com.github.teocci.algo.ai.javafx.base.utils.Random;
-import com.github.teocci.algo.ai.javafx.base.views.MainView;
+import com.github.teocci.algo.ai.javafx.base.views.dino.MainView;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;

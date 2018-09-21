@@ -2,6 +2,9 @@ package com.github.teocci.algo.ai.javafx.base.utils;
 
 import com.github.teocci.algo.ai.javafx.base.model.dino.Element;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -20,5 +23,35 @@ public class CommonHelper
                 i--;
             }
         }
+    }
+
+    public static <T> T[] add2BArray(T[] elements, T element)
+    {
+        T[] newArray = Arrays.copyOf(elements, elements.length + 1);
+        newArray[0] = element;
+        System.arraycopy(elements, 0, newArray, 1, elements.length);
+
+        return newArray;
+    }
+
+    public static <T> T[] add2Array(T[] elements, T element)
+    {
+        T[] newArray = Arrays.copyOf(elements, elements.length + 1);
+        newArray[elements.length] = element;
+
+        return newArray;
+    }
+
+    public static <T> T[] toArray(final List<T> obj)
+    {
+        if (obj == null || obj.isEmpty()) {
+            return null;
+        }
+        final T t = obj.get(0);
+        final T[] res = (T[]) Array.newInstance(t.getClass(), obj.size());
+        for (int i = 0; i < obj.size(); i++) {
+            res[i] = obj.get(i);
+        }
+        return res;
     }
 }

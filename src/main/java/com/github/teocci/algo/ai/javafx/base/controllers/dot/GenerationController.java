@@ -1,12 +1,17 @@
 package com.github.teocci.algo.ai.javafx.base.controllers.dot;
 
 import com.github.teocci.algo.ai.javafx.base.model.dot.Dot;
+import com.github.teocci.algo.ai.javafx.base.model.dot.Obstacle;
+import com.github.teocci.algo.ai.javafx.base.model.dot.Vector2D;
+import com.github.teocci.algo.ai.javafx.base.utils.CommonHelper;
 import com.github.teocci.algo.ai.javafx.base.utils.LogHelper;
 import com.github.teocci.algo.ai.javafx.base.utils.Random;
+import com.github.teocci.algo.ai.javafx.base.views.dot.MainView;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.stage.Stage;
 
 import static com.github.teocci.algo.ai.javafx.base.model.dot.Dot.BASE_RADIUS;
 
@@ -21,13 +26,13 @@ public class GenerationController
 
     public static final int BASE_OFFSET = 20 + BASE_RADIUS;
 
+    private MainView view;
+
     private int size, width, height;
-    private Pane canvas;
-
-
-    private Label genValue, bestValue;
+//    private Pane canvas;
 
     private Dot[] dots;
+    private Obstacle[] obstacles;
 
     private double fitnessSum;
     private int gen = 0;
@@ -38,10 +43,17 @@ public class GenerationController
 
     private Dot goal;
 
+    public GenerationController(Stage stage) {
+        view = new MainView(this, stage);
+        size = 1000;
+
+        init();
+    }
+
     public GenerationController(int size, Pane canvas)
     {
-        this.size = size;
-        this.canvas = canvas;
+//        this.size = size;
+//        this.canvas = canvas;
 
         init();
     }
@@ -49,29 +61,25 @@ public class GenerationController
     public GenerationController(int size, Pane canvas, Label genValue, Label bestValue)
     {
         this.size = size;
-        this.canvas = canvas;
-        this.genValue = genValue;
-        this.bestValue = bestValue;
+//        this.canvas = canvas;
+//        this.genValue = genValue;
+//        this.bestValue = bestValue;
 
         init();
     }
 
     private void init()
     {
-        this.width = (int) canvas.getWidth();
-        this.height = (int) canvas.getHeight();
+        this.width = (int) view.getCanvasWidth();
+        this.height = (int) view.getCanvasHeight();
 
         LogHelper.w(TAG, "(width, height)-> (" + width + ", " + height + ')');
 
         initDots();
         initGoal();
+        initObstacles();
 
         initCanvas();
-    }
-
-    private void initCanvas()
-    {
-        canvas.getChildren().addAll(getDots());
     }
 
     private void initDots()
@@ -91,43 +99,45 @@ public class GenerationController
         goal.setRadius(radius);
     }
 
-
-    public Circle[] getDots()
+    private void initObstacles()
     {
-        Circle[] nodes = new Circle[dots.length + 1];
-        nodes[0] = goal.getDot();
-        for (int i = 0; i < dots.length; i++) {
-            nodes[i + 1] = dots[i].getDot();
-        }
+        obstacles = new Obstacle[2];
+        obstacles[0] = new Obstacle(new Vector2D(0, 300), 500, 80);
+        obstacles[1] = new Obstacle(new Vector2D(300, 600), width-300, 80);
+    }
 
-        return nodes;
+    private void initCanvas()
+    {
+        view.drawDots(CommonHelper.add2BArray(dots, goal));
     }
 
     //update all dots
     public void update()
     {
-        for (int i = 0; i < dots.length; i++) {
-            if (dots[i].getDna().getStep() > minStep) {
+        for (Dot dot : dots) {
+            if (dot.getDna().getStep() > minStep) {
                 // If the dot has already taken more steps than the best dot has taken to reach the goal
-                dots[i].die();
+                dot.die();
             } else {
-                if (canvas == null) throw new NullPointerException("Canvas is null.");
-                dots[i].update(goal, width, height - BASE_OFFSET * 2 / 3);
+                dot.update(goal, obstacles, width, height - BASE_OFFSET * 2 / 3);
             }
         }
 
-        canvas.getChildren().clear();
-        canvas.getChildren().addAll(getDots());
+        view.clear();
+        view.drawObstacles(obstacles);
+        view.drawDots(CommonHelper.add2BArray(dots, goal));
+//        canvas.getChildren().clear();
+//        canvas.getChildren().addAll(getDots());
 
-        if (genValue != null) genValue.setText("" + gen);
-        if (bestValue != null) bestValue.setText("" + minStep);
+        view.setGenValue(gen);
+        view.setBestValue(minStep);
     }
 
     // calculate all the fitness's
     public void calculateFitness()
     {
-        for (int i = 0; i < dots.length; i++) {
-            dots[i].calculateFitness(goal.getPos());
+        for (Dot dot : dots) {
+            dot.calculateFitness(goal.getPos());
         }
     }
 
@@ -176,7 +186,7 @@ public class GenerationController
     }
 
 
-    public void calculateFitnessSum()
+    private void calculateFitnessSum()
     {
         fitnessSum = 0;
         for (Dot dot : dots) {
@@ -241,10 +251,5 @@ public class GenerationController
                 LogHelper.e(TAG, "step:", minStep);
             }
         }
-    }
-
-    public int getGen()
-    {
-        return gen;
     }
 }
